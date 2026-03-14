@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Build/">
+    <File Path="appveyor.yml" />
+  </Folder>
+  <Folder Name="/Readme/">
+    <File Path="CHANGELOG.md" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="CsProjFormatter/CsProjFormatter.csproj" Id="694740c5-c9c1-419f-b36a-fce1dea4ee41" />
+  <Project Path="CsProjFormatterTests/CsProjFormatterTests.csproj" Id="210e95c9-03d5-476c-ad5d-6a253d167fa6" />
+</Solution>
