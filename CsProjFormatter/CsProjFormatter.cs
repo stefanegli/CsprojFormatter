@@ -4,7 +4,9 @@ namespace CsProjFormatter
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using System.Xml;
     using System.Xml.Linq;
 
     public class CsProjFormatter
@@ -20,10 +22,111 @@ namespace CsProjFormatter
 
         public bool Run(String resxPath)
         {
-            var result = false;
+            var originalText = File.ReadAllText(resxPath);
+            var document = XDocument.Load(resxPath);
+
+            if (this.Settings.SortEntries)
+            {
+                if (IsProjectDocument(document))
+                {
+                    SortPropertyGroups(document);
+                }
+                else
+                {
+                    SortResxEntries(document);
+                }
+            }
+
+            var formattedText = FormatDocument(document);
+            if (!string.Equals(originalText, formattedText, StringComparison.Ordinal))
+            {
+                File.WriteAllText(resxPath, formattedText);
+                this.Log.WriteLine($"Updating {resxPath}");
+                return true;
+            }
+
+            var reason = "No modifications";
+            this.Log.WriteLine($"Update was not required: {reason}.");
+            return false;
+        }
+
+        private static string FormatDocument(XDocument document)
+        {
+            var settings = new XmlWriterSettings
+            {
+                Indent = true,
+                IndentChars = "  ",
+                NewLineChars = "\r\n",
+                NewLineHandling = NewLineHandling.Replace,
+                OmitXmlDeclaration = document.Declaration is null,
+            };
+
+            using (var stringWriter = new StringWriter())
+            using (var xmlWriter = XmlWriter.Create(stringWriter, settings))
+            {
+                document.Save(xmlWriter);
+                xmlWriter.Flush();
+                return stringWriter.ToString();
+            }
+        }
+
+        private static bool IsProjectDocument(XDocument document)
+        {
+            return document.Root?.Name.LocalName == "Project";
+        }
+
+        private static void SortPropertyGroups(XDocument document)
+        {
+            foreach (var propertyGroup in document.Root.Elements().Where(e => e.Name.LocalName == "PropertyGroup"))
+            {
+                var nodes = propertyGroup.Nodes().ToList();
+                var groups = new List<ElementGroup>();
+                var leadingNodes = new List<XNode>();
+
+                foreach (var node in nodes)
+                {
+                    if (node is XElement element)
+                    {
+                        groups.Add(new ElementGroup(element, new List<XNode>(leadingNodes)));
+                        leadingNodes.Clear();
+                    }
+                    else
+                    {
+                        leadingNodes.Add(node);
+                    }
+                }
+
+                var trailingNodes = new List<XNode>(leadingNodes);
+                if (groups.Count == 0)
+                {
+                    continue;
+                }
+
+                var sortedGroups = groups
+                    .OrderBy(group => group.Element.Name.LocalName, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var newNodes = new List<XNode>();
+                foreach (var group in sortedGroups)
+                {
+                    newNodes.AddRange(group.LeadingNodes);
+                    newNodes.Add(group.Element);
+                }
+
+                newNodes.AddRange(trailingNodes);
+                propertyGroup.ReplaceNodes(newNodes);
+            }
+        }
+
+        private static void SortResxEntries(XDocument document)
+        {
+            if (document.Root is null)
+            {
+                return;
+            }
+
             var toSave = new List<XNode>();
             var toSort = new List<XElement>();
-            var document = XDocument.Load(resxPath);
 
             foreach (var node in document.Root.Nodes())
             {
@@ -37,26 +140,26 @@ namespace CsProjFormatter
                 }
             }
 
-            var sorted = this.Settings.SortEntries
-                ? toSort.OrderBy(e => e.Attribute("name").Value).OrderBy(e => e.Name.ToString()).ToList()
-                : toSort;
+            var sorted = toSort
+                .OrderBy(e => e.Name.ToString(), StringComparer.OrdinalIgnoreCase)
+                .ThenBy(e => (string)e.Attribute("name"), StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
-            var requiresSorting = this.Settings.SortEntries && !toSort.SequenceEqual(sorted);
-            if (requiresSorting)
+            toSave.AddRange(sorted);
+            document.Root.ReplaceNodes(toSave);
+        }
+
+        private sealed class ElementGroup
+        {
+            public ElementGroup(XElement element, List<XNode> leadingNodes)
             {
-                toSave.AddRange(sorted);
-                document.Root.ReplaceNodes(toSave);
-                this.Log.WriteLine($"Updating {resxPath}");
-                document.Save(resxPath);
-                result = true;
-            }
-            else
-            {
-                var reason = "No modifications";
-                this.Log.WriteLine($"Update was not required: {reason}.");
+                this.Element = element;
+                this.LeadingNodes = leadingNodes;
             }
 
-            return result;
+            public XElement Element { get; }
+
+            public List<XNode> LeadingNodes { get; }
         }
     }
 }
