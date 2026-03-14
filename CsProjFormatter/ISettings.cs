@@ -1,17 +1,14 @@
-﻿namespace CsProjFormatter
-{
-    public enum ReloadMode
-    {
-        Off,
-        AfterModification,
-        Always
-    }
+﻿// Copyright (c) 2022 by Stefan Egli.All rights reserved
 
+namespace CsProjFormatter
+{
     public interface ISettings
     {
-        bool FixResxWriter { get; }
-        ReloadMode ReloadFile { get; }
-        bool RemoveDocumentationComment { get; }
         bool SortEntries { get; }
+    }
+
+    public class Settings : ISettings
+    {
+        public bool SortEntries => true;
     }
 }

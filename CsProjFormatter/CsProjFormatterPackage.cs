@@ -1,42 +1,29 @@
-﻿namespace CsProjFormatter
+﻿// Copyright (c) 2022 by Stefan Egli.All rights reserved
+
+namespace CsProjFormatter
 {
     using EnvDTE;
+
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
+
     using System;
-    using System.Reflection;
-    using System.Resources;
     using System.Runtime.InteropServices;
     using System.Threading;
+
     using Task = System.Threading.Tasks.Task;
 
     [Guid("40d1f52e-e828-4cca-8279-df4ccd348f09")]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string, PackageAutoLoadFlags.BackgroundLoad)]
-    [ProvideOptionPage(typeof(OptionPageGrid), Vsix.Name, OptionPageGrid.GeneralCategory, 0, 0, true)]
     public sealed class CsProjFormatterPackage : AsyncPackage
     {
         private static EnvDTE80.DTE2 applicationObject;
         private static DocumentEvents documentEvents;
         private static Events events;
-        private static ISettings settings;
-
         private static ILog Log { get; } = new Log();
-
-        private ISettings Settings
-        {
-            get
-            {
-                if (settings == null)
-                {
-                    settings = (OptionPageGrid)GetDialogPage(typeof(OptionPageGrid));
-                }
-
-                return settings;
-            }
-        }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -51,30 +38,6 @@
                 events = applicationObject.Events;
                 documentEvents = events.DocumentEvents;
                 documentEvents.DocumentSaved += this.OnDocumentSaved;
-
-                if (this.Settings.FixResxWriter)
-                {
-                    Log.WriteLine("Fixing ResXResourceWriter.");
-                    FixResxWriter();
-                }
-            }
-        }
-
-        private static void FixResxWriter()
-        {
-            var field = typeof(ResXResourceWriter).GetField("ResourceSchema", BindingFlags.Static | BindingFlags.Public);
-            if (field != null)
-            {
-                // remove the comment from the schema as it only bloats the resource files
-                if (field.GetValue(null) is string schema)
-                {
-                    var endOfComment = schema.IndexOf("-->", StringComparison.Ordinal);
-                    if (endOfComment > 0)
-                    {
-                        schema = schema.Substring(endOfComment + 3);
-                        field.SetValue(null, schema);
-                    }
-                }
             }
         }
 
@@ -82,20 +45,12 @@
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var settings = this.Settings;
             if (document.Kind.ToUpperInvariant() == "{8E7B96A8-E33D-11D0-A6D5-00C04FB67F6A}"
-                && document.FullName.ToUpperInvariant().EndsWith(".RESX"))
+                && document.FullName.ToUpperInvariant().EndsWith(".CSPROJ"))
             {
                 Log.WriteLine("Save event for xml document received.");
-                var formatter = new CsProjFormatter(settings, Log);
-                if ((formatter.Run(document.FullName) && settings.ReloadFile == ReloadMode.Off)
-                    || settings.ReloadFile == ReloadMode.Always)
-
-                {
-                    Log.WriteLine("Reloading file.");
-                    document.Close(vsSaveChanges.vsSaveChangesNo);
-                    applicationObject.ItemOperations.OpenFile(document.FullName);
-                }
+                var formatter = new CsProjFormatter(new Settings(), Log);
+                formatter.Run(document.FullName);
             }
         }
     }
