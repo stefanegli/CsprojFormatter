@@ -1,49 +1,35 @@
-﻿namespace CsProjFormatterTests
+﻿// Copyright (c) 2022 by Stefan Egli.All rights reserved
+
+namespace CsProjFormatterTests
 {
-    using NFluent;
     using CsProjFormatter;
+
     using CsProjFormatterTests.TestFoundation;
+
+    using NFluent;
+
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Security.Cryptography;
-    using System.Text;
+
     using Xunit;
 
     public class FormattingTests
     {
         [Theory]
         [ClassData(typeof(CsProjTestData))]
-        public void Files_are_processed_correctly(ISettings settings, string message, string fileName, string expectedHash)
+        public void Files_are_processed_correctly(ISettings settings, string inputFile, string expectedFile, string caseName)
         {
             // Arrange
-            var tempFileName = $"_files\\{Guid.NewGuid()}.resx";
-
             var formatter = new CsProjFormatter(settings, new FakeLog());
-            var file = $"_files\\{fileName}";
-            File.Copy(file, tempFileName, true);
 
             // Act
-            formatter.Run(tempFileName);
+            formatter.Run(inputFile);
 
             // Assert
-            Check.WithCustomMessage(message + $" Result File: {tempFileName}").That(Sha256(tempFileName)).Equals(expectedHash);
-        }
-
-        private string Sha256(string path)
-        {
-            using (var stream = File.OpenRead(path))
-            using (var sha = new SHA256Managed())
-            {
-                var result = new StringBuilder();
-                byte[] hash = sha.ComputeHash(stream);
-                foreach (byte hashByte in hash)
-                {
-                    result.Append(hashByte.ToString("X2"));
-                }
-
-                return result.ToString();
-            }
+            Check.WithCustomMessage($"Case: {caseName} Input: {inputFile} Expected: {expectedFile}")
+                .That(File.ReadAllText(inputFile))
+                .Equals(File.ReadAllText(expectedFile));
         }
 
         internal class CsProjTestData : TheoryDataBase<ISettings, string, string, string>
@@ -56,7 +42,47 @@
                     RemoveDocumentationComment = true
                 };
 
-                yield return (@default, "...", "xx.csproj", "..");
+                var outputRoot = Path.Combine(AppContext.BaseDirectory, "_files");
+                var inputRoot = Path.Combine(outputRoot, "input");
+                var expectedRoot = Path.Combine(outputRoot, "expected");
+
+                if (!Directory.Exists(inputRoot))
+                {
+                    throw new InvalidOperationException($"Input folder not found: {inputRoot}");
+                }
+
+                foreach (var inputFile in Directory.GetFiles(inputRoot, "*", SearchOption.AllDirectories))
+                {
+                    var relativePath = GetRelativePath(inputRoot, inputFile);
+                    var expectedFile = Path.Combine(expectedRoot, relativePath);
+
+                    if (!File.Exists(expectedFile))
+                    {
+                        throw new InvalidOperationException($"Expected file not found: {expectedFile}");
+                    }
+
+                    var caseName = relativePath.Replace(Path.DirectorySeparatorChar, '/');
+                    yield return (@default, inputFile, expectedFile, caseName);
+                }
+            }
+
+            private static string AppendDirectorySeparator(string path)
+            {
+                if (path.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
+                {
+                    return path;
+                }
+
+                return path + Path.DirectorySeparatorChar;
+            }
+
+            private static string GetRelativePath(string basePath, string fullPath)
+            {
+                var baseUri = new Uri(AppendDirectorySeparator(basePath), UriKind.Absolute);
+                var fullUri = new Uri(fullPath, UriKind.Absolute);
+                var relativeUri = baseUri.MakeRelativeUri(fullUri);
+                return Uri.UnescapeDataString(relativeUri.ToString())
+                    .Replace('/', Path.DirectorySeparatorChar);
             }
 
             private class FakeSettings : ISettings

@@ -79,7 +79,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="_files\" />
+    <None Include="_files\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
