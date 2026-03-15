@@ -45,6 +45,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ConfigurableCsProjFormatter.cs" />
+    <Compile Include="CsProjEditorConfigSettings.cs" />
     <Compile Include="ILog.cs" />
     <Compile Include="ISettings.cs" />
     <Compile Include="Log.cs" />
@@ -71,6 +73,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="editorconfig" Version="0.13.0" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

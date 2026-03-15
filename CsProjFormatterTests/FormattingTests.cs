@@ -18,10 +18,10 @@ namespace CsProjFormatterTests
     {
         [Theory]
         [ClassData(typeof(CsProjTestData))]
-        public void Files_are_processed_correctly(ISettings settings, string inputFile, string expectedFile, string caseName)
+        public void Files_are_processed_correctly(string inputFile, string expectedFile, string caseName)
         {
             // Arrange
-            var formatter = new CsProjFormatter(settings, new FakeLog());
+            var formatter = new ConfigurableCsProjFormatter(new FakeLog());
 
             // Act
             formatter.Run(inputFile);
@@ -32,15 +32,10 @@ namespace CsProjFormatterTests
                 .Equals(File.ReadAllText(expectedFile));
         }
 
-        internal class CsProjTestData : TheoryDataBase<ISettings, string, string, string>
+        internal class CsProjTestData : TheoryDataBase<string, string, string>
         {
-            public override IEnumerable<(ISettings, string, string, string)> Create()
+            public override IEnumerable<(string, string, string)> Create()
             {
-                var @default = new FakeSettings
-                {
-                    SortEntries = true,
-                };
-
                 var outputRoot = Path.Combine(AppContext.BaseDirectory, "_files");
                 var inputRoot = Path.Combine(outputRoot, "input");
                 var expectedRoot = Path.Combine(outputRoot, "expected");
@@ -50,7 +45,7 @@ namespace CsProjFormatterTests
                     throw new InvalidOperationException($"Input folder not found: {inputRoot}");
                 }
 
-                foreach (var inputFile in Directory.GetFiles(inputRoot, "*", SearchOption.AllDirectories))
+                foreach (var inputFile in Directory.GetFiles(inputRoot, "*.csproj", SearchOption.AllDirectories))
                 {
                     var relativePath = GetRelativePath(inputRoot, inputFile);
                     var expectedFile = Path.Combine(expectedRoot, relativePath);
@@ -61,7 +56,7 @@ namespace CsProjFormatterTests
                     }
 
                     var caseName = relativePath.Replace(Path.DirectorySeparatorChar, '/');
-                    yield return (@default, inputFile, expectedFile, caseName);
+                    yield return (inputFile, expectedFile, caseName);
                 }
             }
 

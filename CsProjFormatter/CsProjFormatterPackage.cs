@@ -49,7 +49,7 @@ namespace CsProjFormatter
                 && document.FullName.ToUpperInvariant().EndsWith(".CSPROJ"))
             {
                 Log.WriteLine("Save event for xml document received.");
-                var formatter = new CsProjFormatter(new Settings(), Log);
+                var formatter = new ConfigurableCsProjFormatter(Log);
                 formatter.Run(document.FullName);
             }
         }
