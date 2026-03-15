@@ -1,2 +1,5 @@
 [*.csproj]
 csproj_formatter_sort_entries=true
+end_of_line = crlf
+tab_width = 4
+indent_style = space

@@ -37,7 +37,7 @@ namespace CsProjFormatter
                 }
             }
 
-            var formattedText = FormatDocument(document);
+            var formattedText = FormatDocument(document, this.Settings);
             if (!string.Equals(originalText, formattedText, StringComparison.Ordinal))
             {
                 File.WriteAllText(resxPath, formattedText);
@@ -50,19 +50,21 @@ namespace CsProjFormatter
             return false;
         }
 
-        private static string FormatDocument(XDocument document)
+        private static string FormatDocument(XDocument document, ISettings settings)
         {
-            var settings = new XmlWriterSettings
+            var indentChars = ResolveIndentChars(settings);
+            var newLineChars = ResolveNewLineChars(settings);
+            var writerSettings = new XmlWriterSettings
             {
                 Indent = true,
-                IndentChars = "  ",
-                NewLineChars = "\r\n",
+                IndentChars = indentChars,
+                NewLineChars = newLineChars,
                 NewLineHandling = NewLineHandling.Replace,
                 OmitXmlDeclaration = document.Declaration is null,
             };
 
             using (var stringWriter = new StringWriter())
-            using (var xmlWriter = XmlWriter.Create(stringWriter, settings))
+            using (var xmlWriter = XmlWriter.Create(stringWriter, writerSettings))
             {
                 document.Save(xmlWriter);
                 xmlWriter.Flush();
@@ -73,6 +75,32 @@ namespace CsProjFormatter
         private static bool IsProjectDocument(XDocument document)
         {
             return document.Root?.Name.LocalName == "Project";
+        }
+
+        private static string ResolveIndentChars(ISettings settings)
+        {
+            if (string.Equals(settings.IndentStyle, "tab", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\t";
+            }
+
+            var width = settings.TabWidth > 0 ? settings.TabWidth : 2;
+            return new string(' ', width);
+        }
+
+        private static string ResolveNewLineChars(ISettings settings)
+        {
+            if (string.Equals(settings.EndOfLine, "lf", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\n";
+            }
+
+            if (string.Equals(settings.EndOfLine, "cr", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\r";
+            }
+
+            return "\r\n";
         }
 
         private static void SortPropertyGroups(XDocument document)

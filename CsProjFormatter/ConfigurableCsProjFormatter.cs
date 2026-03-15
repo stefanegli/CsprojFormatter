@@ -17,7 +17,7 @@ namespace CsProjFormatter
         public void Run(string csprojPath)
         {
             var settings = new CsProjEditorConfigSettings(csprojPath, this.Log);
-            if (!settings.IsActive || !settings.SortEntries)
+            if (!settings.IsActive)
             {
                 return;
             }
