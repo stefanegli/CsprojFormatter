@@ -6,6 +6,7 @@ namespace CsProjFormatter
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Xml;
     using System.Xml.Linq;
 
@@ -130,9 +131,7 @@ namespace CsProjFormatter
                     continue;
                 }
 
-                var sortedGroups = groups
-                    .OrderBy(group => group.Element.Name.LocalName, StringComparer.OrdinalIgnoreCase)
-                    .ToList();
+                var sortedGroups = SortElementGroupsWithDependencies(groups);
 
                 var newNodes = new List<XNode>();
                 foreach (var group in sortedGroups)
@@ -175,6 +174,141 @@ namespace CsProjFormatter
 
             toSave.AddRange(sorted);
             document.Root.ReplaceNodes(toSave);
+        }
+
+        private static List<ElementGroup> SortElementGroupsWithDependencies(List<ElementGroup> groups)
+        {
+            if (groups.Count <= 1)
+            {
+                return groups;
+            }
+
+            var comparer = StringComparer.OrdinalIgnoreCase;
+            var nameToIndices = new Dictionary<string, List<int>>(comparer);
+            for (var i = 0; i < groups.Count; i++)
+            {
+                var name = groups[i].Element.Name.LocalName;
+                if (!nameToIndices.TryGetValue(name, out var indices))
+                {
+                    indices = new List<int>();
+                    nameToIndices.Add(name, indices);
+                }
+
+                indices.Add(i);
+            }
+
+            var edges = new List<HashSet<int>>(groups.Count);
+            var indegree = new int[groups.Count];
+            for (var i = 0; i < groups.Count; i++)
+            {
+                edges.Add(new HashSet<int>());
+            }
+
+            var referenceRegex = new Regex(@"\$\(([^)]+)\)", RegexOptions.Compiled);
+            for (var i = 0; i < groups.Count; i++)
+            {
+                var element = groups[i].Element;
+                var text = element.Value;
+                foreach (var attribute in element.Attributes())
+                {
+                    text += " " + attribute.Value;
+                }
+
+                foreach (Match match in referenceRegex.Matches(text))
+                {
+                    if (match.Groups.Count < 2)
+                    {
+                        continue;
+                    }
+
+                    var referenceName = match.Groups[1].Value;
+                    if (string.IsNullOrWhiteSpace(referenceName))
+                    {
+                        continue;
+                    }
+
+                    if (!nameToIndices.TryGetValue(referenceName, out var indices))
+                    {
+                        continue;
+                    }
+
+                    foreach (var referencedIndex in indices)
+                    {
+                        if (referencedIndex == i)
+                        {
+                            continue;
+                        }
+
+                        if (edges[referencedIndex].Add(i))
+                        {
+                            indegree[i]++;
+                        }
+                    }
+                }
+            }
+
+            var ready = new List<int>();
+            for (var i = 0; i < indegree.Length; i++)
+            {
+                if (indegree[i] == 0)
+                {
+                    ready.Add(i);
+                }
+            }
+
+            var result = new List<ElementGroup>(groups.Count);
+            while (ready.Count > 0)
+            {
+                ready.Sort((left, right) =>
+                {
+                    var leftName = groups[left].Element.Name.LocalName;
+                    var rightName = groups[right].Element.Name.LocalName;
+                    var nameCompare = comparer.Compare(leftName, rightName);
+                    return nameCompare != 0 ? nameCompare : left.CompareTo(right);
+                });
+
+                var next = ready[0];
+                ready.RemoveAt(0);
+                result.Add(groups[next]);
+
+                foreach (var dependent in edges[next])
+                {
+                    indegree[dependent]--;
+                    if (indegree[dependent] == 0)
+                    {
+                        ready.Add(dependent);
+                    }
+                }
+            }
+
+            if (result.Count == groups.Count)
+            {
+                return result;
+            }
+
+            var remaining = new List<int>();
+            for (var i = 0; i < groups.Count; i++)
+            {
+                if (!result.Contains(groups[i]))
+                {
+                    remaining.Add(i);
+                }
+            }
+
+            remaining.Sort((left, right) =>
+            {
+                var leftName = groups[left].Element.Name.LocalName;
+                var rightName = groups[right].Element.Name.LocalName;
+                var nameCompare = comparer.Compare(leftName, rightName);
+                return nameCompare != 0 ? nameCompare : left.CompareTo(right);
+            });
+
+            foreach (var index in remaining)
+            {
+                result.Add(groups[index]);
+            }
+
+            return result;
         }
 
         private sealed class ElementGroup
