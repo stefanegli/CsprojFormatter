@@ -104,78 +104,6 @@ namespace CsProjFormatter
             return "\r\n";
         }
 
-        private static void SortPropertyGroups(XDocument document)
-        {
-            foreach (var propertyGroup in document.Root.Elements().Where(e => e.Name.LocalName == "PropertyGroup"))
-            {
-                var nodes = propertyGroup.Nodes().ToList();
-                var groups = new List<ElementGroup>();
-                var leadingNodes = new List<XNode>();
-
-                foreach (var node in nodes)
-                {
-                    if (node is XElement element)
-                    {
-                        groups.Add(new ElementGroup(element, new List<XNode>(leadingNodes)));
-                        leadingNodes.Clear();
-                    }
-                    else
-                    {
-                        leadingNodes.Add(node);
-                    }
-                }
-
-                var trailingNodes = new List<XNode>(leadingNodes);
-                if (groups.Count == 0)
-                {
-                    continue;
-                }
-
-                var sortedGroups = SortElementGroupsWithDependencies(groups);
-
-                var newNodes = new List<XNode>();
-                foreach (var group in sortedGroups)
-                {
-                    newNodes.AddRange(group.LeadingNodes);
-                    newNodes.Add(group.Element);
-                }
-
-                newNodes.AddRange(trailingNodes);
-                propertyGroup.ReplaceNodes(newNodes);
-            }
-        }
-
-        private static void SortResxEntries(XDocument document)
-        {
-            if (document.Root is null)
-            {
-                return;
-            }
-
-            var toSave = new List<XNode>();
-            var toSort = new List<XElement>();
-
-            foreach (var node in document.Root.Nodes())
-            {
-                if (node is XElement element && (element.Name.LocalName == "data" || element.Name.LocalName == "metadata"))
-                {
-                    toSort.Add(element);
-                }
-                else
-                {
-                    toSave.Add(node);
-                }
-            }
-
-            var sorted = toSort
-                .OrderBy(e => e.Name.ToString(), StringComparer.OrdinalIgnoreCase)
-                .ThenBy(e => (string)e.Attribute("name"), StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            toSave.AddRange(sorted);
-            document.Root.ReplaceNodes(toSave);
-        }
-
         private static List<ElementGroup> SortElementGroupsWithDependencies(List<ElementGroup> groups)
         {
             if (groups.Count <= 1)
@@ -309,6 +237,78 @@ namespace CsProjFormatter
             }
 
             return result;
+        }
+
+        private static void SortPropertyGroups(XDocument document)
+        {
+            foreach (var propertyGroup in document.Root.Elements().Where(e => e.Name.LocalName == "PropertyGroup"))
+            {
+                var nodes = propertyGroup.Nodes().ToList();
+                var groups = new List<ElementGroup>();
+                var leadingNodes = new List<XNode>();
+
+                foreach (var node in nodes)
+                {
+                    if (node is XElement element)
+                    {
+                        groups.Add(new ElementGroup(element, new List<XNode>(leadingNodes)));
+                        leadingNodes.Clear();
+                    }
+                    else
+                    {
+                        leadingNodes.Add(node);
+                    }
+                }
+
+                var trailingNodes = new List<XNode>(leadingNodes);
+                if (groups.Count == 0)
+                {
+                    continue;
+                }
+
+                var sortedGroups = SortElementGroupsWithDependencies(groups);
+
+                var newNodes = new List<XNode>();
+                foreach (var group in sortedGroups)
+                {
+                    newNodes.AddRange(group.LeadingNodes);
+                    newNodes.Add(group.Element);
+                }
+
+                newNodes.AddRange(trailingNodes);
+                propertyGroup.ReplaceNodes(newNodes);
+            }
+        }
+
+        private static void SortResxEntries(XDocument document)
+        {
+            if (document.Root is null)
+            {
+                return;
+            }
+
+            var toSave = new List<XNode>();
+            var toSort = new List<XElement>();
+
+            foreach (var node in document.Root.Nodes())
+            {
+                if (node is XElement element && (element.Name.LocalName == "data" || element.Name.LocalName == "metadata"))
+                {
+                    toSort.Add(element);
+                }
+                else
+                {
+                    toSave.Add(node);
+                }
+            }
+
+            var sorted = toSort
+                .OrderBy(e => e.Name.ToString(), StringComparer.OrdinalIgnoreCase)
+                .ThenBy(e => (string)e.Attribute("name"), StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            toSave.AddRange(sorted);
+            document.Root.ReplaceNodes(toSave);
         }
 
         private sealed class ElementGroup
