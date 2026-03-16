@@ -5,15 +5,15 @@ namespace CsProjFormatter
     public interface ISettings
     {
         string EndOfLine { get; }
-        string IndentStyle { get; }
+        char IndentStyle { get; }
         bool SortEntries { get; }
         int TabWidth { get; }
     }
 
     public class Settings : ISettings
     {
-        public string EndOfLine => "crlf";
-        public string IndentStyle => "space";
+        public string EndOfLine => "\r\n";
+        public char IndentStyle => ' ';
         public bool SortEntries => true;
         public int TabWidth => 2;
     }

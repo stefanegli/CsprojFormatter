@@ -81,8 +81,8 @@ namespace CsProjFormatterTests
 
             private class FakeSettings : ISettings
             {
-                public string EndOfLine { get; set; } = "crlf";
-                public string IndentStyle { get; set; } = "space";
+                public string EndOfLine { get; set; } = "\r\n";
+                public char IndentStyle { get; set; } = ' ';
                 public bool SortEntries { get; set; }
                 public int TabWidth { get; set; } = 2;
             }

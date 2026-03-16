@@ -20,7 +20,7 @@ namespace CsProjFormatter
                 if (settings.TryGetValue("indent_style", out var indentStyle))
                 {
                     isActive = true;
-                    this.IndentStyle = indentStyle;
+                    this.IndentStyle = ResolveIndentStyle(indentStyle);
                 }
 
                 if (settings.TryGetValue("tab_width", out var tabWidth)
@@ -45,7 +45,7 @@ namespace CsProjFormatter
                 if (settings.TryGetValue("end_of_line", out var endOfLine))
                 {
                     isActive = true;
-                    this.EndOfLine = endOfLine;
+                    this.EndOfLine = ResolveEndOfLine(endOfLine);
                 }
             }
             catch (Exception ex)
@@ -62,10 +62,30 @@ namespace CsProjFormatter
 
         public bool SortEntries { get; }
 
-        public string IndentStyle { get; } = "space";
+        public char IndentStyle { get; } = ' ';
 
         public int TabWidth { get; } = 2;
 
-        public string EndOfLine { get; } = "crlf";
+        public string EndOfLine { get; } = "\r\n";
+
+        private static char ResolveIndentStyle(string indentStyle)
+        {
+            return string.Equals(indentStyle, "tab", StringComparison.OrdinalIgnoreCase) ? '\t' : ' ';
+        }
+
+        private static string ResolveEndOfLine(string endOfLine)
+        {
+            if (string.Equals(endOfLine, "lf", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\n";
+            }
+
+            if (string.Equals(endOfLine, "cr", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\r";
+            }
+
+            return "\r\n";
+        }
     }
 }

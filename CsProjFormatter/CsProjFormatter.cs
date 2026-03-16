@@ -76,28 +76,18 @@ namespace CsProjFormatter
 
         private static string ResolveIndentChars(ISettings settings)
         {
-            if (string.Equals(settings.IndentStyle, "tab", StringComparison.OrdinalIgnoreCase))
+            if (settings.IndentStyle == '\t')
             {
                 return "\t";
             }
 
             var width = settings.TabWidth > 0 ? settings.TabWidth : 2;
-            return new string(' ', width);
+            return new string(settings.IndentStyle, width);
         }
 
         private static string ResolveNewLineChars(ISettings settings)
         {
-            if (string.Equals(settings.EndOfLine, "lf", StringComparison.OrdinalIgnoreCase))
-            {
-                return "\n";
-            }
-
-            if (string.Equals(settings.EndOfLine, "cr", StringComparison.OrdinalIgnoreCase))
-            {
-                return "\r";
-            }
-
-            return "\r\n";
+            return string.IsNullOrEmpty(settings.EndOfLine) ? "\r\n" : settings.EndOfLine;
         }
 
         private static List<ElementGroup> SortElementGroupsWithDependencies(List<ElementGroup> groups)
