@@ -32,10 +32,6 @@ namespace CsProjFormatter
                 {
                     SortPropertyGroups(document);
                 }
-                else
-                {
-                    SortResxEntries(document);
-                }
             }
 
             var formattedText = FormatDocument(document, this.Settings);
@@ -278,37 +274,6 @@ namespace CsProjFormatter
                 newNodes.AddRange(trailingNodes);
                 propertyGroup.ReplaceNodes(newNodes);
             }
-        }
-
-        private static void SortResxEntries(XDocument document)
-        {
-            if (document.Root is null)
-            {
-                return;
-            }
-
-            var toSave = new List<XNode>();
-            var toSort = new List<XElement>();
-
-            foreach (var node in document.Root.Nodes())
-            {
-                if (node is XElement element && (element.Name.LocalName == "data" || element.Name.LocalName == "metadata"))
-                {
-                    toSort.Add(element);
-                }
-                else
-                {
-                    toSave.Add(node);
-                }
-            }
-
-            var sorted = toSort
-                .OrderBy(e => e.Name.ToString(), StringComparer.OrdinalIgnoreCase)
-                .ThenBy(e => (string)e.Attribute("name"), StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            toSave.AddRange(sorted);
-            document.Root.ReplaceNodes(toSave);
         }
 
         private sealed class ElementGroup
