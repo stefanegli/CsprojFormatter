@@ -31,6 +31,7 @@ namespace CsProjFormatter
                 if (IsProjectDocument(document))
                 {
                     SortPropertyGroups(document);
+                    SortPackageReferences(document);
                 }
             }
 
@@ -248,6 +249,72 @@ namespace CsProjFormatter
                 newNodes.AddRange(trailingNodes);
                 propertyGroup.ReplaceNodes(newNodes);
             }
+        }
+
+        private static void SortPackageReferences(XDocument document)
+        {
+            foreach (var itemGroup in document.Root.Elements().Where(e => e.Name.LocalName == "ItemGroup"))
+            {
+                var packageElements = itemGroup.Elements().Where(e => e.Name.LocalName == "PackageReference").ToList();
+                if (packageElements.Count == 0)
+                {
+                    continue;
+                }
+
+                if (!itemGroup.Elements().All(e => e.Name.LocalName == "PackageReference"))
+                {
+                    continue;
+                }
+
+                var nodes = itemGroup.Nodes().ToList();
+                var groups = new List<ElementGroup>();
+                var leadingNodes = new List<XNode>();
+
+                foreach (var node in nodes)
+                {
+                    if (node is XElement element && element.Name.LocalName == "PackageReference")
+                    {
+                        groups.Add(new ElementGroup(element, new List<XNode>(leadingNodes)));
+                        leadingNodes.Clear();
+                    }
+                    else
+                    {
+                        leadingNodes.Add(node);
+                    }
+                }
+
+                var trailingNodes = new List<XNode>(leadingNodes);
+                if (groups.Count == 0)
+                {
+                    continue;
+                }
+
+                var comparer = StringComparer.OrdinalIgnoreCase;
+                var sortedGroups = groups
+                    .Select((group, index) => new { group, index })
+                    .OrderBy(x => GetPackageSortKey(x.group.Element), comparer)
+                    .ThenBy(x => x.index)
+                    .Select(x => x.group)
+                    .ToList();
+
+                var newNodes = new List<XNode>();
+                foreach (var group in sortedGroups)
+                {
+                    newNodes.AddRange(group.LeadingNodes);
+                    newNodes.Add(group.Element);
+                }
+
+                newNodes.AddRange(trailingNodes);
+                itemGroup.ReplaceNodes(newNodes);
+            }
+        }
+
+        private static string GetPackageSortKey(XElement element)
+        {
+            return (string)element.Attribute("Include")
+                ?? (string)element.Attribute("Update")
+                ?? element.Name.LocalName
+                ?? string.Empty;
         }
 
         private sealed class ElementGroup

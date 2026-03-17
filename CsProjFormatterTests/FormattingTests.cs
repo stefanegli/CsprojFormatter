@@ -78,14 +78,6 @@ namespace CsProjFormatterTests
                 return Uri.UnescapeDataString(relativeUri.ToString())
                     .Replace('/', Path.DirectorySeparatorChar);
             }
-
-            private class FakeSettings : ISettings
-            {
-                public string EndOfLine { get; set; } = "\r\n";
-                public char IndentStyle { get; set; } = ' ';
-                public bool SortEntries { get; set; }
-                public int TabWidth { get; set; } = 2;
-            }
         }
     }
 }
