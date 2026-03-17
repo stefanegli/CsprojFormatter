@@ -53,6 +53,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CsProjFormatter.cs" />
     <Compile Include="CsProjFormatterPackage.cs" />
+    <Compile Include="SettingsExtensions.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

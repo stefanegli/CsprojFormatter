@@ -49,8 +49,8 @@ namespace CsProjFormatter
 
         private static string FormatDocument(XDocument document, ISettings settings)
         {
-            var indentChars = ResolveIndentChars(settings);
-            var newLineChars = ResolveNewLineChars(settings);
+            var indentChars = settings.ResolveIndentChars();
+            var newLineChars = settings.ResolveNewLineChars();
             var writerSettings = new XmlWriterSettings
             {
                 Indent = true,
@@ -72,22 +72,6 @@ namespace CsProjFormatter
         private static bool IsProjectDocument(XDocument document)
         {
             return document.Root?.Name.LocalName == "Project";
-        }
-
-        private static string ResolveIndentChars(ISettings settings)
-        {
-            if (settings.IndentStyle == '\t')
-            {
-                return "\t";
-            }
-
-            var width = settings.TabWidth > 0 ? settings.TabWidth : 2;
-            return new string(settings.IndentStyle, width);
-        }
-
-        private static string ResolveNewLineChars(ISettings settings)
-        {
-            return string.IsNullOrEmpty(settings.EndOfLine) ? "\r\n" : settings.EndOfLine;
         }
 
         private static List<ElementGroup> SortElementGroupsWithDependencies(List<ElementGroup> groups)
