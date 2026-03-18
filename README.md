@@ -13,6 +13,23 @@ or get the [CI build](http://vsixgallery.com/extension/CsProjFormatter.C4817943-
 
 
 # Settings
+
+## EditorConfig
+Formatting rules are configured in the [EditorConfig](https://editorconfig.org/) file as follows:
+
+```ini
+[*.csproj]
+csproj_formatter_sort_entries=true
+indent_style=space
+tab_width=4
+end_of_line=crlf
+```
+
+Sorting behavior:
+- PropertyGroup entries are sorted alphabetically, but dependencies like `$(Version)` are kept before the properties that reference them.
+- ItemGroup entries are sorted when all items are the same type: `PackageReference`, `ProjectReference`, `Reference`, or `None`.
+- PackageReference groups are ordered as: normal packages, `IncludeAssets`, `PrivateAssets`, and then `Condition`, with alphabetical sorting inside each group.
+
 A few things can be configured and probably you want to have this done as follows:
 
 ![Settings](CsProjFormatter/_doc/Settings.png)
