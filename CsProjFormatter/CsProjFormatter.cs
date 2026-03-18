@@ -32,6 +32,7 @@ namespace CsProjFormatter
                 {
                     SortPropertyGroups(document);
                     SortItemGroups(document);
+                    MoveUnexpectedProjectElementsToEnd(document);
                 }
             }
 
@@ -249,6 +250,59 @@ namespace CsProjFormatter
                 newNodes.AddRange(trailingNodes);
                 propertyGroup.ReplaceNodes(newNodes);
             }
+        }
+
+        private static void MoveUnexpectedProjectElementsToEnd(XDocument document)
+        {
+            if (document.Root is null)
+            {
+                return;
+            }
+
+            var knownElements = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "PropertyGroup",
+                "ItemGroup",
+                "ItemDefinitionGroup",
+                "Import",
+                "Target",
+                "UsingTask",
+                "Choose",
+                "When",
+                "Otherwise",
+                "ProjectExtensions",
+                "Sdk",
+            };
+
+            var keptNodes = new List<XNode>();
+            var unexpectedElements = new List<XElement>();
+
+            foreach (var node in document.Root.Nodes())
+            {
+                if (node is XElement element)
+                {
+                    if (knownElements.Contains(element.Name.LocalName))
+                    {
+                        keptNodes.Add(element);
+                    }
+                    else
+                    {
+                        unexpectedElements.Add(element);
+                    }
+                }
+                else
+                {
+                    keptNodes.Add(node);
+                }
+            }
+
+            if (unexpectedElements.Count == 0)
+            {
+                return;
+            }
+
+            keptNodes.AddRange(unexpectedElements);
+            document.Root.ReplaceNodes(keptNodes);
         }
 
         private static void SortItemGroups(XDocument document)
