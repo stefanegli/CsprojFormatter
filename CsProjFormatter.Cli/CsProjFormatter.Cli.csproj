@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>CsProjFormatter.Cli</RootNamespace>
     <AssemblyName>CsProjFormatter.Cli</AssemblyName>
-    <TargetName>csprojfmt</TargetName>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -20,4 +19,11 @@
   <ItemGroup>
     <PackageReference Include="editorconfig" Version="0.13.0" />
   </ItemGroup>
+
+  <Target Name="CreateCompactExeAlias" AfterTargets="Build">
+    <Copy
+      SourceFiles="$(TargetDir)$(AssemblyName).exe"
+      DestinationFiles="$(TargetDir)csprojfmt.exe"
+      Condition="Exists('$(TargetDir)$(AssemblyName).exe')" />
+  </Target>
 </Project>

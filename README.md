@@ -38,6 +38,7 @@ A few things can be configured and probably you want to have this done as follow
 
 # CLI
 The repository includes a console app named `csprojfmt` that applies the same formatting rules as the VS extension.
+It targets .NET 10.
 
 Build:
 ```
