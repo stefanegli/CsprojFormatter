@@ -43,6 +43,8 @@ Build:
 ```
 dotnet build CsProjFormatter.Cli/CsProjFormatter.Cli.csproj --nologo
 ```
+Build output:
+- `artifacts/bin/CsProjFormatter.Cli/<configuration>/csprojfmt.exe`
 
 Usage:
 ```
