@@ -47,7 +47,7 @@ Publish:
 dotnet publish CsProjFormatter.Cli/CsProjFormatter.Cli.csproj -c Release -o ./artifacts/tools/csprojfmt --nologo
 ```
 Publish output:
-- `artifacts/tools/csprojfmt/CsProjFormatter.Cli.exe`
+- `artifacts/tools/csprojfmt/csprojfmt.exe`
 
 Usage:
 ```

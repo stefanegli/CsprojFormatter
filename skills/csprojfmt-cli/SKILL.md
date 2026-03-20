@@ -13,7 +13,7 @@ Use PowerShell commands from the repository root.
 
 ```powershell
 dotnet publish .\CsProjFormatter.Cli\CsProjFormatter.Cli.csproj -c Release -o .\artifacts\tools\csprojfmt --nologo
-.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe --version
+.\artifacts\tools\csprojfmt\csprojfmt.exe --version
 ```
 
 If the executable is missing, publish first.
@@ -27,7 +27,7 @@ Format the current project file:
 4. If still ambiguous, ask the user which file to format.
 
 ```powershell
-.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe .\MyProject.csproj
+.\artifacts\tools\csprojfmt\csprojfmt.exe .\MyProject.csproj
 ```
 
 Format the current solution:
@@ -35,7 +35,7 @@ Format the current solution:
 2. Format all project files recursively.
 
 ```powershell
-.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe -r .\
+.\artifacts\tools\csprojfmt\csprojfmt.exe -r .\
 ```
 
 ## Check And Preview Modes
@@ -43,13 +43,13 @@ Format the current solution:
 Preview without writing:
 
 ```powershell
-.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe --dry-run -r .\
+.\artifacts\tools\csprojfmt\csprojfmt.exe --dry-run -r .\
 ```
 
 CI-style check (exit code `1` if changes would be required):
 
 ```powershell
-.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe --check -r .\
+.\artifacts\tools\csprojfmt\csprojfmt.exe --check -r .\
 ```
 
 ## Reporting
