@@ -8,6 +8,7 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="CsProjFormatter/CsProjFormatter.csproj" Id="694740c5-c9c1-419f-b36a-fce1dea4ee41" />
+  <Project Path="CsProjFormatter.Core/CsProjFormatter.Core.csproj" Id="4f8a6e3b-daa6-43b7-8e45-fc926393665c" />
   <Project Path="CsProjFormatter.Cli/CsProjFormatter.Cli.csproj" Id="b4314ff9-d1e6-4fa5-9b0b-45fc85c3e8ef" />
   <Project Path="CsProjFormatterTests/CsProjFormatterTests.csproj" Id="210e95c9-03d5-476c-ad5d-6a253d167fa6" />
 </Solution>

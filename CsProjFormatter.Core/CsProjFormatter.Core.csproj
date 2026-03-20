@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>CsProjFormatter</RootNamespace>
+    <AssemblyName>CsProjFormatter.Core</AssemblyName>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\CsProjFormatter\ConfigurableCsProjFormatter.cs" Link="ConfigurableCsProjFormatter.cs" />
+    <Compile Include="..\CsProjFormatter\CsProjEditorConfigSettings.cs" Link="CsProjEditorConfigSettings.cs" />
+    <Compile Include="..\CsProjFormatter\CsProjFormatter.cs" Link="CsProjFormatter.cs" />
+    <Compile Include="..\CsProjFormatter\ILog.cs" Link="ILog.cs" />
+    <Compile Include="..\CsProjFormatter\ISettings.cs" Link="ISettings.cs" />
+    <Compile Include="..\CsProjFormatter\SettingsExtensions.cs" Link="SettingsExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="editorconfig" Version="0.13.0" />
+  </ItemGroup>
+</Project>
