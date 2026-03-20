@@ -1,14 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
     </PropertyGroup>
-
     <ItemGroup>
-        <None Include="readme.txt" />
+        <None Include="a.txt" />
+        <None Include="b.txt" />
+        <None Include="c.txt" />
     </ItemGroup>
-
-    <CustomSettings Enabled="true">
-        <Flag>on</Flag>
-    </CustomSettings>
 </Project>

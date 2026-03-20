@@ -47,6 +47,14 @@ namespace CsProjFormatter
                     isActive = true;
                     this.EndOfLine = ResolveEndOfLine(endOfLine);
                 }
+
+                if (settings.TryGetValue("csproj_formatter_empty_lines_between_groups", out var emptyLinesBetweenGroups)
+                    && int.TryParse(emptyLinesBetweenGroups, out var parsedEmptyLinesBetweenGroups)
+                    && parsedEmptyLinesBetweenGroups >= 0)
+                {
+                    isActive = true;
+                    this.EmptyLinesBetweenGroups = parsedEmptyLinesBetweenGroups;
+                }
             }
             catch (Exception ex)
             {
@@ -67,6 +75,8 @@ namespace CsProjFormatter
         public int TabWidth { get; } = 2;
 
         public string EndOfLine { get; } = "\r\n";
+
+        public int EmptyLinesBetweenGroups { get; } = 1;
 
         private static char ResolveIndentStyle(string indentStyle)
         {

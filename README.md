@@ -20,6 +20,7 @@ Formatting rules are configured in the [EditorConfig](https://editorconfig.org/)
 ```ini
 [*.csproj]
 csproj_formatter_sort_entries=true
+csproj_formatter_empty_lines_between_groups=1
 indent_style=space
 tab_width=4
 end_of_line=crlf
@@ -29,6 +30,7 @@ Sorting behavior:
 - PropertyGroup entries are sorted alphabetically, but dependencies like `$(Version)` are kept before the properties that reference them.
 - ItemGroup entries are sorted when all items are the same type: `PackageReference`, `ProjectReference`, `Reference`, or `None`.
 - PackageReference groups are ordered as: normal packages, `IncludeAssets`, `PrivateAssets`, and then `Condition`, with alphabetical sorting inside each group.
+- Top-level groups are separated by one empty line by default. Configure with `csproj_formatter_empty_lines_between_groups` (`0` disables extra blank lines).
 
 A few things can be configured and probably you want to have this done as follows:
 

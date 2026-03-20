@@ -77,8 +77,98 @@ namespace CsProjFormatter
             {
                 document.Save(xmlWriter);
                 xmlWriter.Flush();
-                return stringWriter.ToString();
+                return ApplyTopLevelGroupSpacing(stringWriter.ToString(), settings, newLineChars, indentChars);
             }
+        }
+
+        private static string ApplyTopLevelGroupSpacing(
+            string formattedText,
+            ISettings settings,
+            string newLineChars,
+            string indentChars)
+        {
+            if (settings.EmptyLinesBetweenGroups <= 0 || string.IsNullOrEmpty(formattedText))
+            {
+                return formattedText;
+            }
+
+            var lines = formattedText.Split(new[] { newLineChars }, StringSplitOptions.None);
+            if (lines.Length < 3)
+            {
+                return formattedText;
+            }
+
+            var outputLines = new List<string>(lines.Length + 16);
+            for (var i = 0; i < lines.Length; i++)
+            {
+                outputLines.Add(lines[i]);
+                if (i >= lines.Length - 1)
+                {
+                    continue;
+                }
+
+                if (ShouldSeparateTopLevelGroups(lines[i], lines[i + 1], indentChars))
+                {
+                    for (var j = 0; j < settings.EmptyLinesBetweenGroups; j++)
+                    {
+                        outputLines.Add(string.Empty);
+                    }
+                }
+            }
+
+            return string.Join(newLineChars, outputLines);
+        }
+
+        private static bool ShouldSeparateTopLevelGroups(string currentLine, string nextLine, string indentChars)
+        {
+            if (!TryGetTopLevelTagText(currentLine, indentChars, out var currentTagText))
+            {
+                return false;
+            }
+
+            if (!TryGetTopLevelTagText(nextLine, indentChars, out var nextTagText))
+            {
+                return false;
+            }
+
+            if (!(currentTagText.StartsWith("</", StringComparison.Ordinal) || currentTagText.EndsWith("/>", StringComparison.Ordinal)))
+            {
+                return false;
+            }
+
+            if (!nextTagText.StartsWith("<", StringComparison.Ordinal) || nextTagText.StartsWith("</", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (nextTagText.StartsWith("<?", StringComparison.Ordinal) || nextTagText.StartsWith("<!--", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool TryGetTopLevelTagText(string line, string indentChars, out string tagText)
+        {
+            tagText = null;
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return false;
+            }
+
+            if (!line.StartsWith(indentChars, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (line.StartsWith(indentChars + indentChars, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            tagText = line.Substring(indentChars.Length).Trim();
+            return tagText.Length > 0;
         }
 
         private static bool IsProjectDocument(XDocument document)
