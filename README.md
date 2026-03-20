@@ -36,6 +36,25 @@ A few things can be configured and probably you want to have this done as follow
 
 > Use the experimental setting with caution since it may have undesired side effects.
 
+# CLI
+The repository includes a console app named `csprojfmt` that applies the same formatting rules as the VS extension.
+
+Build:
+```
+dotnet build CsProjFormatter.Cli/CsProjFormatter.Cli.csproj --nologo
+```
+
+Usage:
+```
+csprojfmt [options] <path> [<path> ...]
+```
+
+Options:
+- `-r`, `--recursive` Recurse into subdirectories when a path is a directory.
+- `-v`, `--verbose` Show per-file status and errors.
+- `-n`, `--dry-run` Show what would change without writing files.
+- `--check` Exit with code 1 if any file would change (implies `--dry-run`).
+
 
 # Contributing
 Please use the [issue tracker](https://github.com/stefanegli/CsProjFormatter/issues) for submitting bug reports or feature requests.

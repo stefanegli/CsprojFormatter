@@ -23,6 +23,11 @@ namespace CsProjFormatter
 
         public bool Run(String resxPath)
         {
+            return this.Run(resxPath, true);
+        }
+
+        public bool Run(String resxPath, bool writeChanges)
+        {
             var originalText = File.ReadAllText(resxPath);
             var document = XDocument.Load(resxPath);
 
@@ -39,8 +44,13 @@ namespace CsProjFormatter
             var formattedText = FormatDocument(document, this.Settings);
             if (!string.Equals(originalText, formattedText, StringComparison.Ordinal))
             {
-                File.WriteAllText(resxPath, formattedText);
-                this.Log.WriteLine($"Updating {resxPath}");
+                if (writeChanges)
+                {
+                    File.WriteAllText(resxPath, formattedText);
+                }
+
+                var action = writeChanges ? "Updating" : "Would update";
+                this.Log.WriteLine($"{action} {resxPath}");
                 return true;
             }
 
