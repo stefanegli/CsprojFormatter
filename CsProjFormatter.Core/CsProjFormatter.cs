@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 by Stefan Egli.All rights reserved
+// Copyright (c) 2026 by Stefan Egli.All rights reserved
 
 namespace CsProjFormatter
 {
@@ -28,20 +28,20 @@ namespace CsProjFormatter
         private ILog Log { get; }
         private ISettings Settings { get; }
 
-        public bool Run(String resxPath)
+        public bool Run(String projectPath)
         {
-            return this.Run(resxPath, true);
+            return this.Run(projectPath, true);
         }
 
-        public bool Run(String resxPath, bool writeChanges)
+        public bool Run(String projectPath, bool writeChanges)
         {
-            return this.RunWithResult(resxPath, writeChanges) == FormatterRunResult.Updated;
+            return this.RunWithResult(projectPath, writeChanges) == FormatterRunResult.Updated;
         }
 
-        public FormatterRunResult RunWithResult(String resxPath, bool writeChanges)
+        public FormatterRunResult RunWithResult(String projectPath, bool writeChanges)
         {
-            var originalText = File.ReadAllText(resxPath);
-            var document = XDocument.Load(resxPath);
+            var originalText = File.ReadAllText(projectPath);
+            var document = XDocument.Load(projectPath);
             if (!IsSdkStyleProjectDocument(document))
             {
                 var skipReason = "Not an SDK-style project file";
@@ -64,11 +64,11 @@ namespace CsProjFormatter
             {
                 if (writeChanges)
                 {
-                    File.WriteAllText(resxPath, formattedText);
+                    File.WriteAllText(projectPath, formattedText);
                 }
 
                 var action = writeChanges ? "Updating" : "Would update";
-                this.Log.WriteLine($"{action} {resxPath}");
+                this.Log.WriteLine($"{action} {projectPath}");
                 return FormatterRunResult.Updated;
             }
 

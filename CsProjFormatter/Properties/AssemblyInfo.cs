@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 by Stefan Egli.All rights reserved
+// Copyright (c) 2026 by Stefan Egli.All rights reserved
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ResxUpdater")]
+[assembly: AssemblyTitle("CsProjFormatter")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ResxUpdater")]
+[assembly: AssemblyProduct("CsProjFormatter")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

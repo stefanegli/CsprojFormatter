@@ -1,5 +1,5 @@
 # CsProjFormatter
-Optimizies resx files after saving: Removes comments (in particular the 3KB documentation that is included in every resx file) and sorts entries alphabetically. Use only with a source control system and at your own risk.
+Formats SDK-style .csproj files after saving: sorts supported entries, normalizes XML formatting, and applies consistent spacing. Use only with a source control system and at your own risk.
 
 See the [change log](CHANGELOG.md) for changes and road map.
 
