@@ -9,6 +9,9 @@ namespace CsProjFormatter.Cli
     internal static class Program
     {
         private const string ToolName = "csprojfmt";
+        private static readonly int StatusColumnWidth =
+            new[] { "updated", "unchanged", "skipped", "would-update", "failed" }
+                .Max(x => x.Length) + 2; // include '[' and ']'
 
         public static int Main(string[] args)
         {
@@ -102,6 +105,7 @@ namespace CsProjFormatter.Cli
             }
 
             var log = new ConsoleLog(verbose);
+            var workingDirectory = Environment.CurrentDirectory;
             var changed = 0;
             var unchanged = 0;
             var skipped = 0;
@@ -117,7 +121,7 @@ namespace CsProjFormatter.Cli
                     if (!formatter.IsActive)
                     {
                         skipped++;
-                        WriteStatus("skipped", file);
+                        WriteStatus("skipped", file, workingDirectory);
 
                         continue;
                     }
@@ -125,17 +129,18 @@ namespace CsProjFormatter.Cli
                     if (formatter.IsFileChanged)
                     {
                         changed++;
-                        WriteStatus(dryRun ? "would-update" : "updated", file);
+                        WriteStatus(dryRun ? "would-update" : "updated", file, workingDirectory);
                     }
                     else
                     {
                         unchanged++;
-                        WriteStatus("unchanged", file);
+                        WriteStatus("unchanged", file, workingDirectory);
                     }
                 }
                 catch (Exception ex)
                 {
                     failed++;
+                    WriteStatus("failed", file, workingDirectory);
                     Console.Error.WriteLine($"Failed to format {file}: {ex.Message}");
                     if (verbose)
                     {
@@ -248,9 +253,36 @@ namespace CsProjFormatter.Cli
             return string.Equals(Path.GetExtension(path), ".csproj", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static void WriteStatus(string status, string file)
+        private static void WriteStatus(string status, string file, string workingDirectory)
         {
-            Console.WriteLine($"[{status}] {file}");
+            var statusLabel = $"[{status}]".PadRight(StatusColumnWidth);
+            var displayPath = GetRelativePathFromWorkingDirectory(file, workingDirectory);
+            Console.WriteLine($"{statusLabel} {displayPath}");
+        }
+
+        private static string GetRelativePathFromWorkingDirectory(string file, string workingDirectory)
+        {
+            var fullFilePath = Path.GetFullPath(file);
+            var fullWorkingDirectory = Path.GetFullPath(workingDirectory);
+
+            if (!string.Equals(
+                Path.GetPathRoot(fullFilePath),
+                Path.GetPathRoot(fullWorkingDirectory),
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return fullFilePath;
+            }
+
+            var basePath = fullWorkingDirectory;
+            if (!basePath.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal))
+            {
+                basePath += Path.DirectorySeparatorChar;
+            }
+
+            var relative = Uri.UnescapeDataString(new Uri(basePath).MakeRelativeUri(new Uri(fullFilePath)).ToString())
+                .Replace('/', Path.DirectorySeparatorChar);
+
+            return string.IsNullOrEmpty(relative) ? "." : relative;
         }
 
         private sealed class ConsoleLog : ILog

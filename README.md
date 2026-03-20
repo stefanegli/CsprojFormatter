@@ -57,6 +57,7 @@ Options:
 
 Output:
 - Prints one line per file with a status (`updated`, `unchanged`, `skipped`).
+- Paths are shown relative to the current working directory.
 - `skipped` means formatting is disabled by EditorConfig for that file.
 
 
