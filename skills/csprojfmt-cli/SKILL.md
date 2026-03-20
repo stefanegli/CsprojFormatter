@@ -59,4 +59,4 @@ Always report:
 2. Per-file status lines (`updated`, `unchanged`, `skipped`, or `would-update`).
 3. Final summary line from the tool.
 
-`skipped` means the file was skipped because EditorConfig settings did not activate formatting for that file.
+`skipped` means the file was skipped because EditorConfig settings did not activate formatting for that file, or because the project file is not SDK-style.

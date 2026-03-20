@@ -13,6 +13,8 @@ namespace CsProjFormatter
 
         public bool IsFileChanged { get; private set; }
 
+        public bool IsSkipped { get; private set; }
+
         private ILog Log { get; }
 
         /// <summary>
@@ -26,6 +28,7 @@ namespace CsProjFormatter
         public void Run(string csprojPath, bool writeChanges)
         {
             this.IsFileChanged = false;
+            this.IsSkipped = false;
             var settings = new CsProjEditorConfigSettings(csprojPath, this.Log);
             this.IsActive = settings.IsActive;
             if (!settings.IsActive)
@@ -34,7 +37,9 @@ namespace CsProjFormatter
             }
 
             var formatter = new CsProjFormatter(settings, this.Log);
-            this.IsFileChanged = formatter.Run(csprojPath, writeChanges);
+            var result = formatter.RunWithResult(csprojPath, writeChanges);
+            this.IsFileChanged = result == FormatterRunResult.Updated;
+            this.IsSkipped = result == FormatterRunResult.SkippedNonSdkStyle;
         }
     }
 }

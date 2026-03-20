@@ -10,6 +10,13 @@ namespace CsProjFormatter
     using System.Xml;
     using System.Xml.Linq;
 
+    public enum FormatterRunResult
+    {
+        Updated,
+        Unchanged,
+        SkippedNonSdkStyle,
+    }
+
     public class CsProjFormatter
     {
         public CsProjFormatter(ISettings settings, ILog log)
@@ -28,8 +35,19 @@ namespace CsProjFormatter
 
         public bool Run(String resxPath, bool writeChanges)
         {
+            return this.RunWithResult(resxPath, writeChanges) == FormatterRunResult.Updated;
+        }
+
+        public FormatterRunResult RunWithResult(String resxPath, bool writeChanges)
+        {
             var originalText = File.ReadAllText(resxPath);
             var document = XDocument.Load(resxPath);
+            if (!IsSdkStyleProjectDocument(document))
+            {
+                var skipReason = "Not an SDK-style project file";
+                this.Log.WriteLine($"Update was not required: {skipReason}.");
+                return FormatterRunResult.SkippedNonSdkStyle;
+            }
 
             if (this.Settings.SortEntries)
             {
@@ -51,12 +69,12 @@ namespace CsProjFormatter
 
                 var action = writeChanges ? "Updating" : "Would update";
                 this.Log.WriteLine($"{action} {resxPath}");
-                return true;
+                return FormatterRunResult.Updated;
             }
 
             var reason = "No modifications";
             this.Log.WriteLine($"Update was not required: {reason}.");
-            return false;
+            return FormatterRunResult.Unchanged;
         }
 
         private static string FormatDocument(XDocument document, ISettings settings)
@@ -174,6 +192,36 @@ namespace CsProjFormatter
         private static bool IsProjectDocument(XDocument document)
         {
             return document.Root?.Name.LocalName == "Project";
+        }
+
+        private static bool IsSdkStyleProjectDocument(XDocument document)
+        {
+            if (!IsProjectDocument(document) || document.Root is null)
+            {
+                return false;
+            }
+
+            var root = document.Root;
+            if (HasAttributeValue(root, "Sdk"))
+            {
+                return true;
+            }
+
+            if (root.Elements().Any(e => e.Name.LocalName == "Sdk"))
+            {
+                return true;
+            }
+
+            return root.Elements()
+                .Where(e => e.Name.LocalName == "Import")
+                .Any(e => HasAttributeValue(e, "Sdk"));
+        }
+
+        private static bool HasAttributeValue(XElement element, string attributeLocalName)
+        {
+            var attribute = element.Attributes()
+                .FirstOrDefault(a => a.Name.LocalName == attributeLocalName);
+            return attribute != null && !string.IsNullOrWhiteSpace(attribute.Value);
         }
 
         private static List<ElementGroup> SortElementGroupsWithDependencies(List<ElementGroup> groups)

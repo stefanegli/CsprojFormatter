@@ -112,7 +112,7 @@ namespace CsProjFormatter.Cli
                     var formatter = new ConfigurableCsProjFormatter(log);
                     formatter.Run(file, !dryRun);
 
-                    if (!formatter.IsActive)
+                    if (!formatter.IsActive || formatter.IsSkipped)
                     {
                         skipped++;
                         WriteStatus("skipped", file, workingDirectory);
