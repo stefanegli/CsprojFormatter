@@ -15,12 +15,6 @@ namespace CsProjFormatter.Cli
 
         public static int Main(string[] args)
         {
-            if (args.Length == 0)
-            {
-                PrintUsage(Console.Out);
-                return 1;
-            }
-
             var recursive = false;
             var verbose = false;
             var dryRun = false;
@@ -85,9 +79,7 @@ namespace CsProjFormatter.Cli
 
             if (paths.Count == 0)
             {
-                Console.Error.WriteLine("No input paths provided.");
-                PrintUsage(Console.Error);
-                return 2;
+                paths.Add(".");
             }
 
             var pathErrors = new List<string>();
@@ -190,7 +182,7 @@ namespace CsProjFormatter.Cli
 
         private static void PrintUsage(TextWriter writer)
         {
-            writer.WriteLine($"Usage: {ToolName} [options] <path> [<path> ...]");
+            writer.WriteLine($"Usage: {ToolName} [options] [<path> ...]");
             writer.WriteLine();
             writer.WriteLine("Options:");
             writer.WriteLine("  -r, --recursive   Recurse into subdirectories when a path is a directory.");
@@ -201,6 +193,7 @@ namespace CsProjFormatter.Cli
             writer.WriteLine("  -V, --version     Show version info.");
             writer.WriteLine();
             writer.WriteLine("Notes:");
+            writer.WriteLine("  If no path is provided, the current directory is used.");
             writer.WriteLine("  Formatting only runs when EditorConfig enables it (same as the VS extension)."
                 + " Add csproj_formatter_sort_entries=true to your .editorconfig.");
         }
