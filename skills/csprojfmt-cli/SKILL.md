@@ -12,11 +12,11 @@ Use this skill to run the repository-local `csprojfmt` tool.
 Use PowerShell commands from the repository root.
 
 ```powershell
-dotnet build .\CsProjFormatter.Cli\CsProjFormatter.Cli.csproj --nologo
-.\artifacts\bin\CsProjFormatter.Cli\debug\csprojfmt.exe --version
+dotnet publish .\CsProjFormatter.Cli\CsProjFormatter.Cli.csproj -c Release -o .\artifacts\tools\csprojfmt --nologo
+.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe --version
 ```
 
-If the executable is missing, build first.
+If the executable is missing, publish first.
 
 ## Intent Mapping
 
@@ -27,7 +27,7 @@ Format the current project file:
 4. If still ambiguous, ask the user which file to format.
 
 ```powershell
-.\artifacts\bin\CsProjFormatter.Cli\debug\csprojfmt.exe .\MyProject.csproj
+.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe .\MyProject.csproj
 ```
 
 Format the current solution:
@@ -35,7 +35,7 @@ Format the current solution:
 2. Format all project files recursively.
 
 ```powershell
-.\artifacts\bin\CsProjFormatter.Cli\debug\csprojfmt.exe -r .\
+.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe -r .\
 ```
 
 ## Check And Preview Modes
@@ -43,13 +43,13 @@ Format the current solution:
 Preview without writing:
 
 ```powershell
-.\artifacts\bin\CsProjFormatter.Cli\debug\csprojfmt.exe --dry-run -r .\
+.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe --dry-run -r .\
 ```
 
 CI-style check (exit code `1` if changes would be required):
 
 ```powershell
-.\artifacts\bin\CsProjFormatter.Cli\debug\csprojfmt.exe --check -r .\
+.\artifacts\tools\csprojfmt\CsProjFormatter.Cli.exe --check -r .\
 ```
 
 ## Reporting

@@ -42,12 +42,12 @@ A few things can be configured and probably you want to have this done as follow
 The repository includes a console app named `csprojfmt` that applies the same formatting rules as the VS extension.
 It targets .NET 10.
 
-Build:
+Publish:
 ```
-dotnet build CsProjFormatter.Cli/CsProjFormatter.Cli.csproj --nologo
+dotnet publish CsProjFormatter.Cli/CsProjFormatter.Cli.csproj -c Release -o ./artifacts/tools/csprojfmt --nologo
 ```
-Build output:
-- `artifacts/bin/CsProjFormatter.Cli/<configuration>/csprojfmt.exe`
+Publish output:
+- `artifacts/tools/csprojfmt/CsProjFormatter.Cli.exe`
 
 Usage:
 ```

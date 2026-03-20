@@ -10,11 +10,4 @@
   <ItemGroup>
     <ProjectReference Include="..\CsProjFormatter.Core\CsProjFormatter.Core.csproj" />
   </ItemGroup>
-
-  <Target Name="CreateCompactExeAlias" AfterTargets="Build">
-    <Copy
-      SourceFiles="$(TargetDir)$(AssemblyName).exe"
-      DestinationFiles="$(TargetDir)csprojfmt.exe"
-      Condition="Exists('$(TargetDir)$(AssemblyName).exe')" />
-  </Target>
 </Project>
