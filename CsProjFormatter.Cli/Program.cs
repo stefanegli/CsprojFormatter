@@ -117,10 +117,7 @@ namespace CsProjFormatter.Cli
                     if (!formatter.IsActive)
                     {
                         skipped++;
-                        if (verbose)
-                        {
-                            Console.WriteLine($"Skipped (EditorConfig inactive): {file}");
-                        }
+                        WriteStatus("skipped", file);
 
                         continue;
                     }
@@ -128,14 +125,12 @@ namespace CsProjFormatter.Cli
                     if (formatter.IsFileChanged)
                     {
                         changed++;
+                        WriteStatus(dryRun ? "would-update" : "updated", file);
                     }
                     else
                     {
                         unchanged++;
-                        if (verbose)
-                        {
-                            Console.WriteLine($"No changes: {file}");
-                        }
+                        WriteStatus("unchanged", file);
                     }
                 }
                 catch (Exception ex)
@@ -253,6 +248,11 @@ namespace CsProjFormatter.Cli
             return string.Equals(Path.GetExtension(path), ".csproj", StringComparison.OrdinalIgnoreCase);
         }
 
+        private static void WriteStatus(string status, string file)
+        {
+            Console.WriteLine($"[{status}] {file}");
+        }
+
         private sealed class ConsoleLog : ILog
         {
             private readonly bool verbose;
@@ -264,17 +264,19 @@ namespace CsProjFormatter.Cli
 
             public void WriteLine(string message)
             {
-                if (this.verbose)
+                if (!this.verbose)
                 {
-                    Console.WriteLine(message);
                     return;
                 }
 
                 if (message.StartsWith("Updating ", StringComparison.OrdinalIgnoreCase)
-                    || message.StartsWith("Would update ", StringComparison.OrdinalIgnoreCase))
+                    || message.StartsWith("Would update ", StringComparison.OrdinalIgnoreCase)
+                    || message.StartsWith("Update was not required", StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine(message);
+                    return;
                 }
+
+                Console.WriteLine(message);
             }
         }
     }

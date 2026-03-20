@@ -55,6 +55,10 @@ Options:
 - `-n`, `--dry-run` Show what would change without writing files.
 - `--check` Exit with code 1 if any file would change (implies `--dry-run`).
 
+Output:
+- Prints one line per file with a status (`updated`, `unchanged`, `skipped`).
+- `skipped` means formatting is disabled by EditorConfig for that file.
+
 
 # Contributing
 Please use the [issue tracker](https://github.com/stefanegli/CsProjFormatter/issues) for submitting bug reports or feature requests.
