@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 by Stefan Egli.All rights reserved
+﻿// Copyright (c) 2022 by Stefan Egli.All rights reserved
 
 namespace CsProjFormatter
 {
@@ -16,6 +16,7 @@ namespace CsProjFormatter
 
     [Guid("40d1f52e-e828-4cca-8279-df4ccd348f09")]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class CsProjFormatterPackage : AsyncPackage
@@ -35,6 +36,7 @@ namespace CsProjFormatter
             applicationObject = await this.GetServiceAsync(typeof(SDTE)) as EnvDTE80.DTE2;
             if (applicationObject is object)
             {
+                await FormatAllCommand.InitializeAsync(this, applicationObject, Log);
                 events = applicationObject.Events;
                 documentEvents = events.DocumentEvents;
                 documentEvents.DocumentSaved += this.OnDocumentSaved;
