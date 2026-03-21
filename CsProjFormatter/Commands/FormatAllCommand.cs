@@ -1,6 +1,6 @@
 // Copyright (c) 2026 by Stefan Egli.All rights reserved
 
-namespace CsProjFormatter
+namespace CsProjFormatter.Commands
 {
     using EnvDTE;
     using EnvDTE80;

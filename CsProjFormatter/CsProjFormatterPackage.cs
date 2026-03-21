@@ -4,6 +4,8 @@ namespace CsProjFormatter
 {
     using EnvDTE;
 
+    using global::CsProjFormatter.Commands;
+
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;

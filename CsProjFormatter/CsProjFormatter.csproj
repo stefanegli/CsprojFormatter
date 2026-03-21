@@ -45,7 +45,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FormatAllCommand.cs" />
+    <Compile Include="Commands\CsProjFormatter.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CsProjFormatter.vsct</DependentUpon>
+    </Compile>
+    <Compile Include="Commands\FormatAllCommand.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CsProjFormatterPackage.cs" />
@@ -63,8 +68,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="CsProjFormatter.vsct">
+    <VSCTCompile Include="Commands\CsProjFormatter.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
+      <Generator>VsctGenerator</Generator>
+      <LastGenOutput>CsProjFormatter.cs</LastGenOutput>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
