@@ -16,7 +16,7 @@ namespace CsProjFormatter
 
     using Task = System.Threading.Tasks.Task;
 
-    [Guid("40d1f52e-e828-4cca-8279-df4ccd348f09")]
+    [Guid(PackageGuids.guidCsProjFormatterPackageString)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string, PackageAutoLoadFlags.BackgroundLoad)]

@@ -17,9 +17,9 @@ namespace CsProjFormatter.Commands
     {
         private const string SolutionFolderProjectKind = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 
-        public const int CommandId = 0x0100;
+        public const int CommandId = PackageIds.cmdidFormatAll;
 
-        public static readonly Guid CommandSet = new Guid("96f15caa-cbdc-4ddf-8f33-d44c16cb50dc");
+        public static readonly Guid CommandSet = PackageGuids.guidCsProjFormatterCmdSet;
 
         private readonly DTE2 dte;
         private readonly ILog log;
