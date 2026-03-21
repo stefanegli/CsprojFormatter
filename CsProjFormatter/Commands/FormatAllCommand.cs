@@ -17,10 +17,6 @@ namespace CsProjFormatter.Commands
     {
         private const string SolutionFolderProjectKind = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 
-        public const int CommandId = PackageIds.cmdidFormatAll;
-
-        public static readonly Guid CommandSet = PackageGuids.guidCsProjFormatterCmdSet;
-
         private readonly DTE2 dte;
         private readonly ILog log;
 
@@ -29,7 +25,7 @@ namespace CsProjFormatter.Commands
             this.dte = dte ?? throw new ArgumentNullException(nameof(dte));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
 
-            var menuCommandId = new CommandID(CommandSet, CommandId);
+            var menuCommandId = new CommandID(PackageGuids.guidCsProjFormatterCmdSet, PackageIds.cmdidFormatAll);
             var menuItem = new MenuCommand(this.Execute, menuCommandId);
             commandService.AddCommand(menuItem);
         }
