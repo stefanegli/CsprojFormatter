@@ -68,6 +68,39 @@ Output:
 Default path behavior:
 - If no path is provided, the current directory is processed.
 
+## Publish as .NET global tool (NuGet)
+The CLI project is packaged as a NuGet tool package (`CsProjFormatter.Tool`).
+
+Store the NuGet API key in Windows Credential Manager (one-time setup):
+```
+cmdkey /generic:CsProjFormatter.NuGet.ApiKey.Prod /user:nuget /pass:<NUGET_API_KEY>
+```
+
+You can verify the entry exists:
+```
+cmdkey /list:CsProjFormatter.NuGet.ApiKey.Prod
+```
+
+Pack and push with the script (reads API key from Credential Manager):
+```
+.\scripts\Publish-GlobalTool.ps1
+```
+
+Useful options:
+- Pack only: `.\scripts\Publish-GlobalTool.ps1 -PackOnly`
+- Push an already-built package: `.\scripts\Publish-GlobalTool.ps1 -SkipPack`
+- Use a different credential target: `.\scripts\Publish-GlobalTool.ps1 -CredentialTarget My.Other.Target`
+
+Install the published tool:
+```
+dotnet tool install --global CsProjFormatter.Tool
+```
+
+Update the tool:
+```
+dotnet tool update --global CsProjFormatter.Tool
+```
+
 
 # Contributing
 Please use the [issue tracker](https://github.com/stefanegli/CsProjFormatter/issues) for submitting bug reports or feature requests.
