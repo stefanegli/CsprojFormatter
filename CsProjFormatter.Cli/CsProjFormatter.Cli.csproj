@@ -5,9 +5,23 @@
     <RootNamespace>CsProjFormatter.Cli</RootNamespace>
     <AssemblyName>csprojfmt</AssemblyName>
     <LangVersion>latest</LangVersion>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>csprojfmt</ToolCommandName>
+    <PackageId>CsProjFormatter.Tool</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Stefan Egli</Authors>
+    <Description>Format SDK-style .csproj files from the command line.</Description>
+    <PackageTags>dotnet-tool;csproj;formatter</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/stefanegli/CsProjFormatter</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\">
+      <Link>README.md</Link>
+    </None>
     <ProjectReference Include="..\CsProjFormatter.Core\CsProjFormatter.Core.csproj" />
   </ItemGroup>
 </Project>
