@@ -1,0 +1,21 @@
+{
+  "properties": [
+    {
+      "name": "csproj_formatter_sort_entries",
+      "description": "Sorts supported PropertyGroup and ItemGroup entries alphabetically while preserving dependency order.",
+      "values": [true, false],
+      "defaultValue": [true],
+      "severity": false,
+      "documentationLink": "https://github.com/stefanegli/CsProjFormatter#editorconfig",
+      "example": "csproj_formatter_sort_entries = true"
+    },
+    {
+      "name": "csproj_formatter_empty_lines_between_groups",
+      "description": "Controls how many empty lines are inserted between top-level groups. Use a non-negative integer; 0 disables extra blank lines.",
+      "defaultValue": [1],
+      "severity": false,
+      "documentationLink": "https://github.com/stefanegli/CsProjFormatter#editorconfig",
+      "example": "csproj_formatter_empty_lines_between_groups = 1"
+    }
+  ]
+}

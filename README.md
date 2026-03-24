@@ -1,5 +1,6 @@
 # CsProjFormatter
 Formats SDK-style .csproj files after saving: sorts supported entries, normalizes XML formatting, and applies consistent spacing. Use only with a source control system and at your own risk.
+Targets Visual Studio 2022 and newer.
 
 See the [change log](CHANGELOG.md) for changes and road map.
 
@@ -25,6 +26,8 @@ indent_style=space
 tab_width=4
 end_of_line=crlf
 ```
+
+If users install [EditorConfig Language Service](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.EditorConfig), the custom `csproj_formatter_*` settings are also surfaced through IntelliSense and validation via the bundled schema.
 
 Sorting behavior:
 - PropertyGroup entries are sorted alphabetically, but dependencies like `$(Version)` are kept before the properties that reference them.
