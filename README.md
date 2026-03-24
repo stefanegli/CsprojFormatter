@@ -69,7 +69,7 @@ Default path behavior:
 - If no path is provided, the current directory is processed.
 
 ## Publish as .NET global tool (NuGet)
-The CLI project is packaged as a NuGet tool package (`CsProjFormatter.Tool`).
+The CLI project is packaged as a NuGet tool package (`Samarn.CsProjFormatter.Tool`).
 
 Store the NuGet API key in Windows Credential Manager (one-time setup):
 ```
@@ -93,12 +93,12 @@ Useful options:
 
 Install the published tool:
 ```
-dotnet tool install --global CsProjFormatter.Tool
+dotnet tool install --global Samarn.CsProjFormatter.Tool
 ```
 
 Update the tool:
 ```
-dotnet tool update --global CsProjFormatter.Tool
+dotnet tool update --global Samarn.CsProjFormatter.Tool
 ```
 
 
