@@ -76,12 +76,12 @@ The CLI project is packaged as a NuGet tool package (`PetchMungkorn.CsProjFormat
 
 Store the NuGet API key in Windows Credential Manager (one-time setup):
 ```
-cmdkey /generic:CsProjFormatter.NuGet.ApiKey.Prod /user:nuget /pass:<NUGET_API_KEY>
+cmdkey /generic:NuGet.ApiKey.CsProjFormatter.Prod /user:nuget /pass:<NUGET_API_KEY>
 ```
 
 You can verify the entry exists:
 ```
-cmdkey /list:CsProjFormatter.NuGet.ApiKey.Prod
+cmdkey /list:NuGet.ApiKey.CsProjFormatter.Prod
 ```
 
 Pack and push with the script (reads API key from Credential Manager):

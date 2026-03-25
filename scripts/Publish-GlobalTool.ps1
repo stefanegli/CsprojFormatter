@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$CredentialTarget = "CsProjFormatter.NuGet.ApiKey.Prod",
+    [string]$CredentialTarget = "NuGet.ApiKey.CsProjFormatter.Prod",
     [string]$ProjectPath = "CsProjFormatter.Cli/CsProjFormatter.Cli.csproj",
     [string]$PackagesDirectory = "artifacts/packages",
     [string]$Configuration = "Release",
