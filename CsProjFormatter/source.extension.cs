@@ -13,7 +13,7 @@ namespace CsProjFormatter
         public const string Name = "CsProjFormatter";
         public const string Description = @"Formats .csproj files: Sorts elements alphabetically";
         public const string Language = "en-US";
-        public const string Version = "1.0";
+        public const string Version = "0.1";
         public const string Author = "Stefan Egli";
         public const string Tags = "csproj, formatting";
     }

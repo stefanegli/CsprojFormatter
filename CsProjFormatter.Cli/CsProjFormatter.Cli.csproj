@@ -8,7 +8,6 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>csprojfmt</ToolCommandName>
     <PackageId>PetchMungkorn.CsProjFormatter.Tool</PackageId>
-    <Version>0.1.0</Version>
     <Authors>Stefan Egli</Authors>
     <Description>Format SDK-style .csproj files from the command line.</Description>
     <PackageTags>dotnet-tool;csproj;formatter</PackageTags>
