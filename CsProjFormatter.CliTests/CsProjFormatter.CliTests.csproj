@@ -1,30 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <OutputType>Exe</OutputType>
-    <IsPackable>false</IsPackable>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <LangVersion>latest</LangVersion>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\CsProjFormatter.Cli\CsProjFormatter.Cli.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\CsProjFormatter.Cli\CsProjFormatter.Cli.csproj" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="NFluent" Version="3.1.0" />
-    <PackageReference Include="xunit.v3" Version="3.2.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="NFluent" Version="3.1.0" />
+        <PackageReference Include="xunit.v3" Version="3.2.2" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\CsProjFormatterTests\TestFoundation\FormattingCaseSource.cs" Link="TestFoundation\FormattingCaseSource.cs" />
-    <None Include="..\CsProjFormatterTests\_files\**\*">
-      <Link>_files\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Include="..\CsProjFormatterTests\TestFoundation\FormattingCaseSource.cs" Link="TestFoundation\FormattingCaseSource.cs" />
+        <None Include="..\CsProjFormatterTests\_files\**\*">
+            <Link>_files\%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 </Project>
