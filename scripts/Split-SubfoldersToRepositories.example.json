@@ -1,0 +1,10 @@
+[
+  {
+    "SourcePath": "CsProjFormatter",
+    "RepositoryName": "CsProjFormatter"
+  },
+  {
+    "SourcePath": "ResxFormatter",
+    "RepositoryName": "ResxFormatter"
+  }
+]
