@@ -7,7 +7,9 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="CsProjFormatter/CsProjFormatter.csproj" Id="694740c5-c9c1-419f-b36a-fce1dea4ee41" />
+  <Project Path="CsProjFormatter/CsProjFormatter.csproj" Id="694740c5-c9c1-419f-b36a-fce1dea4ee41">
+    <Deploy Solution="Debug|Any CPU" />
+  </Project>
   <Project Path="CsProjFormatter.Core/CsProjFormatter.Core.csproj" Id="4f8a6e3b-daa6-43b7-8e45-fc926393665c" />
   <Project Path="CsProjFormatter.Cli/CsProjFormatter.Cli.csproj" Id="b4314ff9-d1e6-4fa5-9b0b-45fc85c3e8ef" />
   <Project Path="CsProjFormatter.CliTests/CsProjFormatter.CliTests.csproj" Id="3ca6a5f8-4ab7-4a29-8af6-8b4ec6157cb4" />
