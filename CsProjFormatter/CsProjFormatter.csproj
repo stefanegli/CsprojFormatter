@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <RuntimeIdentifiers>win</RuntimeIdentifiers>
+    <LangVersion>latest</LangVersion>
 
     <!-- VSIX settings -->
     <VSSDKBuildToolsAutoSetup>true</VSSDKBuildToolsAutoSetup>
@@ -12,12 +11,6 @@
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
-
-    <StartAction>Program</StartAction>
-    <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
-    <StartArguments>/rootsuffix Exp</StartArguments>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,7 +32,6 @@
 
   <ItemGroup>
     <None Update="source.extension.vsixmanifest">
-      <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>
       <LastGenOutput>source.extension.cs</LastGenOutput>
     </None>
