@@ -1,0 +1,4 @@
+interface:
+  display_name: "CsProjFormatter CLI"
+  short_description: "Safely check and format SDK-style .csproj files"
+  default_prompt: "Use $csprojfmt to check and format the .csproj files in this repository."
