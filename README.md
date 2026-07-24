@@ -27,9 +27,10 @@ tab_width=4
 end_of_line=crlf
 ```
 
-If users install [EditorConfig Language Service](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.EditorConfig), the custom `csproj_formatter_*` settings are also surfaced through IntelliSense and validation via the bundled schema.
+When the [EditorConfig Language Service](https://github.com/madskristensen/EditorConfigLanguage) version 1.18.35 or newer is installed, the CsProjFormatter VSIX contributes these properties to its IntelliSense and validation. Restart Visual Studio after installing or updating either extension so that the custom schema is loaded.
 
 Sorting behavior:
+
 - PropertyGroup entries are sorted alphabetically, but dependencies like `$(Version)` are kept before the properties that reference them.
 - ItemGroup entries are sorted when all items are the same type: `PackageReference`, `ProjectReference`, `Reference`, or `None`.
 - PackageReference groups are ordered as: normal packages, `IncludeAssets`, `PrivateAssets`, and then `Condition`, with alphabetical sorting inside each group.
@@ -41,66 +42,50 @@ A few things can be configured and probably you want to have this done as follow
 
 > Use the experimental setting with caution since it may have undesired side effects.
 
-# CLI
-The repository includes a console app named `csprojfmt` that applies the same formatting rules as the VS extension.
-It targets .NET 10.
+# Agent Skill / CLI
 
-Publish:
-```
-dotnet publish CsProjFormatter.Cli/CsProjFormatter.Cli.csproj -c Release -o ./artifacts/tools/csprojfmt --nologo
-```
-Publish output:
-- `artifacts/tools/csprojfmt/csprojfmt.exe`
+Download `csprojfmt-<version>.zip` from an [AppVeyor build](https://ci.appveyor.com/project/stefanegli/csprojformatter) and extract its `csprojfmt` directory into your Codex skills directory. The skill includes .NET 10 framework-dependent single-file executables for Windows x64 and Linux x64.
 
-Usage:
-```
-csprojfmt [options] [<path> ...]
+> [!NOTE]
+> The packaged executables are not digitally signed.
+
+Invoke the agent skill with:
+
+```text
+Use $csprojfmt to check and format the .csproj files in this repository.
 ```
 
-Options:
-- `-r`, `--recursive` Recurse into subdirectories when a path is a directory.
-- `-v`, `--verbose` Show per-file status and errors.
-- `-n`, `--dry-run` Show what would change without writing files.
-- `--check` Exit with code 1 if any file would change (implies `--dry-run`).
+Or call the packaged executable directly from the directory containing the project files you want to process.
 
-Output:
-- Prints one line per file with a status (`updated`, `unchanged`, `skipped`).
-- Paths are shown relative to the current working directory.
-- `skipped` means formatting is disabled by EditorConfig or the file is not an SDK-style project.
+Windows:
 
-Default path behavior:
-- If no path is provided, the current directory is processed.
-
-## Publish as .NET global tool (NuGet)
-The CLI project is packaged as a NuGet tool package (`PetchMungkorn.CsProjFormatter.Tool`).
-
-Store the NuGet API key in Windows Credential Manager (one-time setup):
-```
-cmdkey /generic:NuGet.ApiKey.CsProjFormatter.Prod /user:nuget /pass:<NUGET_API_KEY>
+```powershell
+& "$env:USERPROFILE\.codex\skills\csprojfmt\assets\cli\win-x64\csprojfmt.exe" --check --recursive .
 ```
 
-You can verify the entry exists:
-```
-cmdkey /list:NuGet.ApiKey.CsProjFormatter.Prod
+Linux:
+
+```bash
+chmod u+x "$HOME/.codex/skills/csprojfmt/assets/cli/linux-x64/csprojfmt"
+"$HOME/.codex/skills/csprojfmt/assets/cli/linux-x64/csprojfmt" --check --recursive .
 ```
 
-Pack and push with the script (reads API key from Credential Manager):
-```
-.\scripts\Publish-GlobalTool.ps1
-```
+The command syntax is `csprojfmt [options] [<path> ...]`. Use `--check` to detect required changes without writing, `--dry-run` to preview, `--recursive` to include subdirectories, and `--verbose` for detailed output. Formatting follows the applicable EditorConfig settings; without a path, the current directory is processed.
 
-Useful options:
-- Pack only: `.\scripts\Publish-GlobalTool.ps1 -PackOnly`
-- Push an already-built package: `.\scripts\Publish-GlobalTool.ps1 -SkipPack`
-- Use a different credential target: `.\scripts\Publish-GlobalTool.ps1 -CredentialTarget My.Other.Target`
+The CLI reports `updated`, `would-update`, `unchanged`, `skipped`, or `failed` for each file. A skipped file either has no applicable formatting settings or is not an SDK-style project. Exit code `1` means `--check` found pending changes; exit code `2` means a usage, path, access, or formatting failure.
 
-Install the published tool:
-```
+## .NET global tool
+
+The same CLI is available as the `PetchMungkorn.CsProjFormatter.Tool` .NET tool package:
+
+```powershell
 dotnet tool install --global PetchMungkorn.CsProjFormatter.Tool
+csprojfmt --check --recursive .
 ```
 
-Update the tool:
-```
+Update an existing installation with:
+
+```powershell
 dotnet tool update --global PetchMungkorn.CsProjFormatter.Tool
 ```
 
