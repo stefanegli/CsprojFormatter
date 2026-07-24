@@ -80,11 +80,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Schemas\editorconfig.pkgdef">
+    <Content Include="CsProjFormatter.EditorConfigSchema.pkgdef">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Schemas\editorconfig-schema.json">
+    <Content Include="CsProjFormatter.editorconfig-schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
