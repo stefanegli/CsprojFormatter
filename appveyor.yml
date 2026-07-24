@@ -2,32 +2,14 @@ image: Visual Studio 2022
 
 version: 0.1.{build}
 
-environment:
-  DOTNET_CLI_TELEMETRY_OPTOUT: 1
-  DOTNET_NOLOGO: 1
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+# Required for non-PR Gallery publication; configure
+# VSIX_GALLERY_MANAGE_TOKEN as a secure project environment variable.
+
+build: off
+test: off
 
 init:
   - git config --global core.autocrlf true
 
-install:
-  - ps: (new-object Net.WebClient).DownloadString("https://raw.github.com/madskristensen/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
-  - ps: $script = Join-Path $env:TEMP 'dotnet-install.ps1'; Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile $script; & $script -Channel 10.0 -InstallDir "$env:ProgramFiles\dotnet"
-  - set PATH=%ProgramFiles%\dotnet;%PATH%
-
-before_build:
-  - ps: Vsix-IncrementVsixVersion | Vsix-UpdateBuildVersion
-
 build_script:
-  - dotnet --info
-  - msbuild CsProjFormatter\CsProjFormatter.csproj /restore /t:Build /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
-  - dotnet build CsProjFormatter.Cli\CsProjFormatter.Cli.csproj -c Release
-  - dotnet build CsProjFormatterTests\CsProjFormatterTests.csproj -c Release
-  - dotnet build CsProjFormatter.CliTests\CsProjFormatter.CliTests.csproj -c Release
-
-test_script:
-  - dotnet test CsProjFormatterTests\CsProjFormatterTests.csproj -c Release --no-build
-  - dotnet test CsProjFormatter.CliTests\CsProjFormatter.CliTests.csproj -c Release --no-build
-
-after_test:
-  - ps: Vsix-PushArtifacts | Vsix-PublishToGallery
+  - appveyor-build.cmd

@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/Build/">
     <File Path="appveyor.yml" />
+    <File Path="appveyor-build.cmd" />
+    <File Path="appveyor-build.ps1" />
     <File Path="build-cli-skill.ps1" />
   </Folder>
   <Folder Name="/Readme/">
