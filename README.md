@@ -74,22 +74,6 @@ The command syntax is `csprojfmt [options] [<path> ...]`. Use `--check` to detec
 
 The CLI reports `updated`, `would-update`, `unchanged`, `skipped`, or `failed` for each file. A skipped file either has no applicable formatting settings or is not an SDK-style project. Exit code `1` means `--check` found pending changes; exit code `2` means a usage, path, access, or formatting failure.
 
-## .NET global tool
-
-The same CLI is available as the `PetchMungkorn.CsProjFormatter.Tool` .NET tool package:
-
-```powershell
-dotnet tool install --global PetchMungkorn.CsProjFormatter.Tool
-csprojfmt --check --recursive .
-```
-
-Update an existing installation with:
-
-```powershell
-dotnet tool update --global PetchMungkorn.CsProjFormatter.Tool
-```
-
-
 # Contributing
 Please use the [issue tracker](https://github.com/stefanegli/CsProjFormatter/issues) for submitting bug reports or feature requests.
 
