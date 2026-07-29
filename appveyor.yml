@@ -2,8 +2,10 @@ image: Visual Studio 2026
 
 version: 0.1.{build}
 
-# Required for non-PR Gallery publication; configure
-# VSIX_GALLERY_MANAGE_TOKEN as a secure project environment variable.
+# Publication credentials; configure these as secure project environment
+# variables when the corresponding publisher is enabled:
+# - VSIX_GALLERY_MANAGE_TOKEN for the Open VSIX Gallery
+# - NUGET_API_KEY for NuGet.org
 
 build: off
 test: off

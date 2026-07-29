@@ -1,11 +1,17 @@
 [CmdletBinding()]
 param(
+    [Parameter(Mandatory = $true)]
+    [ValidatePattern('^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$')]
+    [string]$Version,
+
     [string]$CredentialTarget = "NuGet.ApiKey.CsProjFormatter.Prod",
     [string]$ProjectPath = "CsProjFormatter.Cli/CsProjFormatter.Cli.csproj",
     [string]$PackagesDirectory = "artifacts/packages",
     [string]$Configuration = "Release",
     [string]$NuGetSource = "https://api.nuget.org/v3/index.json",
     [switch]$SkipPack,
+    [switch]$SkipTests,
+    [switch]$SkipPackageValidation,
     [switch]$PackOnly
 )
 
@@ -53,6 +59,11 @@ function Get-CredentialManagerSecret
         [string]$Target
     )
 
+    if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT)
+    {
+        throw "Windows Credential Manager is unavailable on this operating system. Set NUGET_API_KEY instead."
+    }
+
     $credentialPtr = [IntPtr]::Zero
     $credTypeGeneric = 1
     $result = [CredentialManagerNative]::CredRead($Target, $credTypeGeneric, 0, [ref]$credentialPtr)
@@ -99,6 +110,23 @@ function Get-CredentialManagerSecret
     }
 }
 
+function Invoke-NativeCommand
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$ArgumentList
+    )
+
+    & $FilePath @ArgumentList
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw "'$FilePath' exited with code $LASTEXITCODE."
+    }
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Push-Location $repoRoot
 
@@ -108,53 +136,145 @@ try
     $resolvedPackagesDirectory = Join-Path $repoRoot $PackagesDirectory
     New-Item -ItemType Directory -Force -Path $resolvedPackagesDirectory | Out-Null
 
+    $packageId = (& dotnet msbuild $resolvedProjectPath -getProperty:PackageId -nologo | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw "Could not read PackageId from '$resolvedProjectPath'."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($packageId))
+    {
+        throw "PackageId is empty in '$resolvedProjectPath'."
+    }
+
+    $packagePath = Join-Path $resolvedPackagesDirectory "$packageId.$Version.nupkg"
+
     $dotnetHome = Join-Path $repoRoot ".dotnet"
     New-Item -ItemType Directory -Force -Path $dotnetHome | Out-Null
     $env:DOTNET_CLI_HOME = $dotnetHome
     $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
 
+    if (-not $SkipTests)
+    {
+        Write-Host "Running formatter tests..."
+        Invoke-NativeCommand "dotnet" @(
+            "test",
+            (Join-Path $repoRoot "CsProjFormatterTests\CsProjFormatterTests.csproj"),
+            "--configuration", $Configuration,
+            "--nologo"
+        )
+        Invoke-NativeCommand "dotnet" @(
+            "test",
+            (Join-Path $repoRoot "CsProjFormatter.CliTests\CsProjFormatter.CliTests.csproj"),
+            "--configuration", $Configuration,
+            "--nologo"
+        )
+    }
+
     if (-not $SkipPack)
     {
         Write-Host "Packing tool package from '$resolvedProjectPath'..."
-        & dotnet pack $resolvedProjectPath -c $Configuration -o $resolvedPackagesDirectory --nologo
-        if ($LASTEXITCODE -ne 0)
-        {
-            throw "dotnet pack failed with exit code $LASTEXITCODE."
-        }
+        Invoke-NativeCommand "dotnet" @(
+            "pack",
+            $resolvedProjectPath,
+            "--configuration", $Configuration,
+            "--output", $resolvedPackagesDirectory,
+            "--nologo",
+            "-p:Version=$Version"
+        )
     }
     else
     {
         Write-Host "Skipping pack step as requested."
     }
 
-    $package = Get-ChildItem -Path $resolvedPackagesDirectory -Filter "*.nupkg" |
-        Where-Object { $_.Name -notlike "*.symbols.nupkg" } |
-        Sort-Object LastWriteTimeUtc -Descending |
-        Select-Object -First 1
-
-    if ($null -eq $package)
+    if (-not (Test-Path -LiteralPath $packagePath -PathType Leaf))
     {
-        throw "No package (*.nupkg) found in '$resolvedPackagesDirectory'."
+        throw "Expected package was not found: '$packagePath'."
     }
 
-    Write-Host "Selected package: $($package.FullName)"
+    Write-Host "Selected package: $packagePath"
+
+    if (-not $SkipPackageValidation)
+    {
+        $validationRoot = Join-Path ([IO.Path]::GetTempPath()) (
+            "CsProjFormatter-tool-validation-" + [Guid]::NewGuid().ToString("N"))
+        $toolPath = Join-Path $validationRoot "tools"
+
+        try
+        {
+            New-Item -ItemType Directory -Force -Path $toolPath | Out-Null
+
+            Write-Host "Installing the package into an isolated tool path..."
+            Invoke-NativeCommand "dotnet" @(
+                "tool",
+                "install",
+                $packageId,
+                "--tool-path", $toolPath,
+                "--add-source", $resolvedPackagesDirectory,
+                "--version", $Version,
+                "--ignore-failed-sources"
+            )
+
+            $toolExecutableName = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT)
+            {
+                "csprojfmt.exe"
+            }
+            else
+            {
+                "csprojfmt"
+            }
+            $toolExecutable = Join-Path $toolPath $toolExecutableName
+            if (-not (Test-Path -LiteralPath $toolExecutable -PathType Leaf))
+            {
+                throw "Installed tool command was not found: '$toolExecutable'."
+            }
+
+            Invoke-NativeCommand $toolExecutable @("--version")
+        }
+        finally
+        {
+            if (Test-Path -LiteralPath $validationRoot)
+            {
+                Remove-Item -LiteralPath $validationRoot -Recurse -Force
+            }
+        }
+    }
 
     if ($PackOnly)
     {
         Write-Host "Pack-only mode enabled. Skipping push."
+        Write-Output $packagePath
         return
     }
 
-    $apiKey = Get-CredentialManagerSecret -Target $CredentialTarget
-
-    Write-Host "Pushing package to '$NuGetSource'..."
-    & dotnet nuget push $package.FullName --source $NuGetSource --api-key $apiKey --skip-duplicate
-    if ($LASTEXITCODE -ne 0)
+    $restoreApiKey = $false
+    if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY))
     {
-        throw "dotnet nuget push failed with exit code $LASTEXITCODE."
+        $env:NUGET_API_KEY = Get-CredentialManagerSecret -Target $CredentialTarget
+        $restoreApiKey = $true
+    }
+
+    try
+    {
+        Write-Host "Pushing package to '$NuGetSource'..."
+        Invoke-NativeCommand "dotnet" @(
+            "nuget",
+            "push",
+            $packagePath,
+            "--source", $NuGetSource
+        )
+    }
+    finally
+    {
+        if ($restoreApiKey)
+        {
+            Remove-Item Env:NUGET_API_KEY -ErrorAction SilentlyContinue
+        }
     }
 
     Write-Host "Package push completed."
+    Write-Output $packagePath
 }
 finally
 {
