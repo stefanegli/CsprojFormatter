@@ -8,37 +8,30 @@ csprojfmt [options] [<path> ...]
 
 With no path, process the current directory. A directory is non-recursive unless `--recursive` is present. Accept only `.csproj` file targets; deduplicate overlapping targets.
 
-The packaged `$csprojfmt` skill stores two framework-dependent single-file executables:
+## Tool installation
 
-```text
-<skill-directory>\assets\cli\win-x64\csprojfmt.exe
-<skill-directory>/assets/cli/linux-x64/csprojfmt
+The skill does not contain an executable. Install the .NET 10 SDK, which also supplies the required runtime, then install the global tool:
+
+```powershell
+dotnet tool install --global PetchNaka.CsProjFormatter.Tool
+csprojfmt --version
 ```
 
-Select the executable matching the operating system and x64 architecture. Resolve it to an absolute path, then invoke it while the current working directory is the repository containing the target files.
+Installing or updating a global tool changes the user's environment. Explain the requirement and obtain permission before doing so on the user's behalf.
 
-On Linux, restore the executable bit after ZIP extraction when necessary:
+Update an existing installation with:
 
-```bash
-chmod u+x <skill-directory>/assets/cli/linux-x64/csprojfmt
+```powershell
+dotnet tool update --global PetchNaka.CsProjFormatter.Tool
 ```
 
-Both executables require the .NET 10 runtime. They are single-file and framework-dependent, with ReadyToRun disabled. A single executable cannot target both Windows and Linux because .NET single-file apps are runtime-identifier-specific.
+Prefer `csprojfmt` on `PATH`. If a new installation is not immediately visible, the standard global-tool locations are `%USERPROFILE%\.dotnet\tools` on Windows and `$HOME/.dotnet/tools` on Linux and macOS. Add the appropriate directory to `PATH` or start a new shell rather than copying the tool executable.
 
-When running from the CsProjFormatter source repository without a directly invocable executable:
+When developing in the CsProjFormatter source repository, run the project directly when using the checked-out source is more appropriate than the installed release:
 
 ```powershell
 dotnet run --project CsProjFormatter.Cli/CsProjFormatter.Cli.csproj -- --check --recursive .
 ```
-
-Build or publish from the repository root with the .NET 10 SDK:
-
-```powershell
-dotnet build CsProjFormatter.Cli/CsProjFormatter.Cli.csproj --nologo
-dotnet publish CsProjFormatter.Cli/CsProjFormatter.Cli.csproj -c Release --nologo
-```
-
-Prefer the matching packaged executable. Prefer `dotnet run` over guessing a repository artifact path when the operating system, architecture, build configuration, or platform differs.
 
 ## Options
 
@@ -128,10 +121,11 @@ Paths in output are relative to the current working directory when possible. Wit
 
 ## CI
 
-Use `--check --recursive` to enforce formatting without modifying the checkout:
+Install the tool, then use `--check --recursive` to enforce formatting without modifying the checkout:
 
 ```powershell
+dotnet tool install --global PetchNaka.CsProjFormatter.Tool
 csprojfmt --check --recursive .
 ```
 
-Treat exit `1` as a formatting-policy violation and exit `2` as an execution/configuration failure. Preserve CLI output in the job log so pending or failed paths are visible.
+Pin the package with `--version <version>` when reproducible CI builds require it. Treat exit `1` as a formatting-policy violation and exit `2` as an execution/configuration failure. Preserve CLI output in the job log so pending or failed paths are visible.

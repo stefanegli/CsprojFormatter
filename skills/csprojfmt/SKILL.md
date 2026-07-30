@@ -1,6 +1,6 @@
 ---
 name: csprojfmt
-description: Use the bundled platform-specific, framework-dependent single-file CsProjFormatter `csprojfmt` .NET CLI to check, preview, and format SDK-style `.csproj` files according to EditorConfig; interpret statuses and exit codes; configure formatting rules; integrate checks into CI; or diagnose skipped, unchanged, and failed files. Use when Codex needs to operate the packaged Windows or Linux x64 CLI, a `csprojfmt` executable on PATH, the CsProjFormatter source repository, or `dotnet run`.
+description: Use the PetchNaka.CsProjFormatter.Tool `csprojfmt` .NET global tool to check, preview, and format SDK-style `.csproj` files according to EditorConfig; help install or update the tool; interpret statuses and exit codes; configure formatting rules; integrate checks into CI; or diagnose skipped, unchanged, and failed files. Use when Codex needs to operate `csprojfmt` on PATH, prepare the required .NET tool, or work in the CsProjFormatter source repository.
 ---
 
 # CsProjFormatter CLI
@@ -11,12 +11,11 @@ Use `csprojfmt` conservatively: preview first, preserve the user's EditorConfig 
 
 1. Inspect the target paths, repository status, and applicable `.editorconfig` before writing.
 2. Resolve the command:
-   - On Windows x64, prefer `assets/cli/win-x64/csprojfmt.exe` relative to this `SKILL.md`.
-   - On Linux x64, prefer `assets/cli/linux-x64/csprojfmt` relative to this `SKILL.md`; run `chmod u+x` on it first when its executable bit was not preserved during ZIP extraction.
-   - Otherwise use an explicit executable or `csprojfmt` already on `PATH`.
-   - In the CsProjFormatter source repository, use an existing repo-local artifact when appropriate.
-   - Otherwise run the CLI project with `dotnet run --project CsProjFormatter.Cli/CsProjFormatter.Cli.csproj -- <arguments>`.
-   - Build or publish only when no usable command exists.
+   - Prefer an explicit `csprojfmt` executable or `csprojfmt` already on `PATH`.
+   - If it is unavailable, inform the user that the `PetchNaka.CsProjFormatter.Tool` .NET global tool is required and that the .NET 10 SDK is needed to install it. Offer to install it and obtain permission before changing the user's global tool configuration.
+   - When authorized, run `dotnet tool install --global PetchNaka.CsProjFormatter.Tool`, then verify with `csprojfmt --version`.
+   - If the package is already installed but needs updating, offer `dotnet tool update --global PetchNaka.CsProjFormatter.Tool`; do not update it silently.
+   - In the CsProjFormatter source repository, `dotnet run --project CsProjFormatter.Cli/CsProjFormatter.Cli.csproj -- <arguments>` is an acceptable development fallback.
 3. Preview the exact scope with `--check`. Add `--recursive` only when nested directories belong in scope.
 4. Interpret exit code `1` from `--check` as pending formatting changes, not an execution failure. Treat exit code `2` as a usage, path, access, or formatting failure.
 5. Stop after the preview when the user requested a check, audit, or dry run.
@@ -26,10 +25,9 @@ Use `csprojfmt` conservatively: preview first, preserve the user's EditorConfig 
 
 ## Guardrails
 
-- Resolve the packaged executable to an absolute path before changing the working directory to the target repository.
-- Require the .NET 10 runtime; the packaged single files are framework-dependent, not self-contained.
-- Do not execute a binary for the wrong operating system or architecture. Fall back to `csprojfmt` on `PATH` or the source project when no matching packaged runtime identifier exists.
-- Keep `PublishReadyToRun` disabled when rebuilding the skill package.
+- Require the .NET 10 SDK to install the tool; it also supplies the runtime required by the tool.
+- Do not install or update a global tool without the user's approval.
+- If a newly installed global tool is not visible on `PATH`, use the standard .NET global-tools directory for the current platform or explain that the shell may need to be restarted.
 - Do not add or change `.editorconfig` merely to make a skipped file active unless the user requested configuration changes. Explain the missing policy instead.
 - Do not assume directory arguments recurse; recursion requires `--recursive`.
 - Use `--` before a dash-prefixed path.
@@ -40,4 +38,4 @@ Use `csprojfmt` conservatively: preview first, preserve the user's EditorConfig 
 
 ## Reference
 
-Read [references/cli-reference.md](references/cli-reference.md) for exact commands, settings, output statuses, exit codes, packaged and source-repository paths, and CI patterns.
+Read [references/cli-reference.md](references/cli-reference.md) for installation and update commands, exact CLI usage, settings, output statuses, exit codes, source-repository usage, and CI patterns.
