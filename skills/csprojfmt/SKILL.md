@@ -1,6 +1,6 @@
 ---
 name: csprojfmt
-description: Use the PetchNaka.CsProjFormatter.Tool `csprojfmt` .NET global tool to check, preview, and format SDK-style `.csproj` files according to EditorConfig; help install or update the tool; interpret statuses and exit codes; configure formatting rules; integrate checks into CI; or diagnose skipped, unchanged, and failed files. Use when Codex needs to operate `csprojfmt` on PATH, prepare the required .NET tool, or work in the CsProjFormatter source repository.
+description: Use the PetchNaka.CsProjFormatter.Cli `csprojfmt` .NET global tool to check, preview, and format SDK-style `.csproj` files according to EditorConfig; help install or update the tool; interpret statuses and exit codes; configure formatting rules; integrate checks into CI; or diagnose skipped, unchanged, and failed files. Use when Codex needs to operate `csprojfmt` on PATH, prepare the required .NET tool, or work in the CsProjFormatter source repository.
 ---
 
 # CsProjFormatter CLI
@@ -12,9 +12,9 @@ Use `csprojfmt` conservatively: preview first, preserve the user's EditorConfig 
 1. Inspect the target paths, repository status, and applicable `.editorconfig` before writing.
 2. Resolve the command:
    - Prefer an explicit `csprojfmt` executable or `csprojfmt` already on `PATH`.
-   - If it is unavailable, inform the user that the `PetchNaka.CsProjFormatter.Tool` .NET global tool is required and that the .NET 10 SDK is needed to install it. Offer to install it and obtain permission before changing the user's global tool configuration.
-   - When authorized, run `dotnet tool install --global PetchNaka.CsProjFormatter.Tool`, then verify with `csprojfmt --version`.
-   - If the package is already installed but needs updating, offer `dotnet tool update --global PetchNaka.CsProjFormatter.Tool`; do not update it silently.
+   - If it is unavailable, inform the user that the `PetchNaka.CsProjFormatter.Cli` .NET global tool is required and that the .NET 10 SDK is needed to install it. Offer to install it and obtain permission before changing the user's global tool configuration.
+   - When authorized, run `dotnet tool install --global PetchNaka.CsProjFormatter.Cli`, then verify with `csprojfmt --version`.
+   - If the package is already installed but needs updating, offer `dotnet tool update --global PetchNaka.CsProjFormatter.Cli`; do not update it silently.
    - In the CsProjFormatter source repository, `dotnet run --project CsProjFormatter.Cli/CsProjFormatter.Cli.csproj -- <arguments>` is an acceptable development fallback.
 3. Preview the exact scope with `--check`. Add `--recursive` only when nested directories belong in scope.
 4. Interpret exit code `1` from `--check` as pending formatting changes, not an execution failure. Treat exit code `2` as a usage, path, access, or formatting failure.

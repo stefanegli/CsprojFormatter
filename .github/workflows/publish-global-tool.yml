@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   publish:
-    name: Publish PetchNaka.CsProjFormatter.Tool
+    name: Publish PetchNaka.CsProjFormatter.Cli
     runs-on: windows-latest
     environment: nuget
     timeout-minutes: 15

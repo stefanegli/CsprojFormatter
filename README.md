@@ -44,7 +44,7 @@ A few things can be configured and probably you want to have this done as follow
 
 # Agent Skill / CLI
 
-Download `csprojfmt-<version>.zip` from an [AppVeyor build](https://ci.appveyor.com/project/stefanegli/csprojformatter) and extract its `csprojfmt` directory into your Codex skills directory. The skill uses the `PetchNaka.CsProjFormatter.Tool` .NET global tool and does not bundle an executable.
+Download `csprojfmt-<version>.zip` from an [AppVeyor build](https://ci.appveyor.com/project/stefanegli/csprojformatter) and extract its `csprojfmt` directory into your Codex skills directory. The skill uses the `PetchNaka.CsProjFormatter.Cli` .NET global tool and does not bundle an executable.
 
 Invoke the agent skill with:
 
@@ -55,13 +55,13 @@ Use $csprojfmt to check and format the .csproj files in this repository.
 The agent will detect when the tool is missing and can help install it. To install it directly, first install the .NET 10 SDK and then run:
 
 ```powershell
-dotnet tool install --global PetchNaka.CsProjFormatter.Tool
+dotnet tool install --global PetchNaka.CsProjFormatter.Cli
 ```
 
 Update an existing installation with:
 
 ```powershell
-dotnet tool update --global PetchNaka.CsProjFormatter.Tool
+dotnet tool update --global PetchNaka.CsProjFormatter.Cli
 ```
 
 Run `csprojfmt` from the directory containing the project files you want to process. The command syntax is `csprojfmt [options] [<path> ...]`. Use `--check` to detect required changes without writing, `--dry-run` to preview, `--recursive` to include subdirectories, and `--verbose` for detailed output. Formatting follows the applicable EditorConfig settings; without a path, the current directory is processed.

@@ -5,7 +5,7 @@
         <Description>Format SDK-style .csproj files from the command line.</Description>
         <LangVersion>latest</LangVersion>
         <OutputType>Exe</OutputType>
-        <PackageId>PetchNaka.CsProjFormatter.Tool</PackageId>
+        <PackageId>PetchNaka.CsProjFormatter.Cli</PackageId>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>dotnet-tool;csproj;formatter</PackageTags>

@@ -13,7 +13,7 @@ With no path, process the current directory. A directory is non-recursive unless
 The skill does not contain an executable. Install the .NET 10 SDK, which also supplies the required runtime, then install the global tool:
 
 ```powershell
-dotnet tool install --global PetchNaka.CsProjFormatter.Tool
+dotnet tool install --global PetchNaka.CsProjFormatter.Cli
 csprojfmt --version
 ```
 
@@ -22,7 +22,7 @@ Installing or updating a global tool changes the user's environment. Explain the
 Update an existing installation with:
 
 ```powershell
-dotnet tool update --global PetchNaka.CsProjFormatter.Tool
+dotnet tool update --global PetchNaka.CsProjFormatter.Cli
 ```
 
 Prefer `csprojfmt` on `PATH`. If a new installation is not immediately visible, the standard global-tool locations are `%USERPROFILE%\.dotnet\tools` on Windows and `$HOME/.dotnet/tools` on Linux and macOS. Add the appropriate directory to `PATH` or start a new shell rather than copying the tool executable.
@@ -124,7 +124,7 @@ Paths in output are relative to the current working directory when possible. Wit
 Install the tool, then use `--check --recursive` to enforce formatting without modifying the checkout:
 
 ```powershell
-dotnet tool install --global PetchNaka.CsProjFormatter.Tool
+dotnet tool install --global PetchNaka.CsProjFormatter.Cli
 csprojfmt --check --recursive .
 ```
 
