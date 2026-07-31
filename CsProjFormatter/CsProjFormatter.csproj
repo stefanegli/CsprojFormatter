@@ -1,84 +1,83 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-    <LangVersion>latest</LangVersion>
+    <PropertyGroup>
+        <GeneratePkgDefFile>true</GeneratePkgDefFile>
+        <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+        <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+        <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+        <LangVersion>latest</LangVersion>
+        <TargetFramework>net472</TargetFramework>
+        <UseCodebase>true</UseCodebase>
+        <VsixDeployOnDebug>true</VsixDeployOnDebug>
+        <!-- VSIX settings -->
+        <VSSDKBuildToolsAutoSetup>true</VSSDKBuildToolsAutoSetup>
+    </PropertyGroup>
 
-    <!-- VSIX settings -->
-    <VSSDKBuildToolsAutoSetup>true</VSSDKBuildToolsAutoSetup>
-    <VsixDeployOnDebug>true</VsixDeployOnDebug>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <UseCodebase>true</UseCodebase>
-    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
-    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
-    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-  </PropertyGroup>
+    <ItemGroup>
+        <ProjectCapability Include="CreateVsixContainer" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectCapability Include="CreateVsixContainer" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Update="Commands\CsProjFormatter.cs">
+            <DependentUpon>CsProjFormatter.vsct</DependentUpon>
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+        </Compile>
+        <Compile Update="source.extension.cs">
+            <DependentUpon>source.extension.vsixmanifest</DependentUpon>
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+        </Compile>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Commands\CsProjFormatter.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CsProjFormatter.vsct</DependentUpon>
-    </Compile>
-    <Compile Update="source.extension.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>source.extension.vsixmanifest</DependentUpon>
-    </Compile>
-  </ItemGroup>
+    <ItemGroup>
+        <None Update="source.extension.vsixmanifest">
+            <Generator>VsixManifestGenerator</Generator>
+            <LastGenOutput>source.extension.cs</LastGenOutput>
+        </None>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Update="source.extension.vsixmanifest">
-      <Generator>VsixManifestGenerator</Generator>
-      <LastGenOutput>source.extension.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <VSCTCompile Include="Commands\CsProjFormatter.vsct">
+            <ResourceName>Menus.ctmenu</ResourceName>
+            <Generator>VsctGenerator</Generator>
+            <LastGenOutput>CsProjFormatter.cs</LastGenOutput>
+        </VSCTCompile>
+    </ItemGroup>
 
-  <ItemGroup>
-    <VSCTCompile Include="Commands\CsProjFormatter.vsct">
-      <ResourceName>Menus.ctmenu</ResourceName>
-      <Generator>VsctGenerator</Generator>
-      <LastGenOutput>CsProjFormatter.cs</LastGenOutput>
-    </VSCTCompile>
-  </ItemGroup>
+    <ItemGroup>
+        <Reference Include="System.Design" />
+        <Reference Include="System.Windows.Forms" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="System.Design" />
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" ExcludeAssets="runtime" />
+        <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="18.5.38461" PrivateAssets="all" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="18.5.38461" PrivateAssets="all" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\CsProjFormatter.Core\CsProjFormatter.Core.csproj" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\CsProjFormatter.Core\CsProjFormatter.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Images\Icon.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="Images\Preview.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="License.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="CsProjFormatter.EditorConfigSchema.pkgdef">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="CsProjFormatter.editorconfig-schema.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-  </ItemGroup>
+    <ItemGroup>
+        <Content Include="CsProjFormatter.editorconfig-schema.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <IncludeInVSIX>true</IncludeInVSIX>
+        </Content>
+        <Content Include="CsProjFormatter.EditorConfigSchema.pkgdef">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <IncludeInVSIX>true</IncludeInVSIX>
+        </Content>
+        <Content Include="Images\Icon.png">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <IncludeInVSIX>true</IncludeInVSIX>
+        </Content>
+        <Content Include="Images\Preview.png">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <IncludeInVSIX>true</IncludeInVSIX>
+        </Content>
+        <Content Include="License.txt">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <IncludeInVSIX>true</IncludeInVSIX>
+        </Content>
+    </ItemGroup>
 </Project>

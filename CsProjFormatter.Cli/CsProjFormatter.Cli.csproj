@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <AssemblyName>csprojfmt</AssemblyName>
         <Authors>Stefan Egli</Authors>
@@ -21,6 +21,9 @@
         <None Include="..\README.md" Pack="true" PackagePath="\">
             <Link>README.md</Link>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\CsProjFormatter.Core\CsProjFormatter.Core.csproj" />
     </ItemGroup>
 </Project>
