@@ -8,6 +8,7 @@
 - Recognize SDK-style imports and item operations without unsafe reordering.
 - Add `--lint` structural diagnostics with source line numbers.
 - Skip common generated directories during recursive CLI discovery.
+- Automate tagged VSIX releases to the Visual Studio Marketplace.
 
 
 ## 0.1

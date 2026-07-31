@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json.schemastore.org/vsix-publish",
+    "categories": [
+        "coding"
+    ],
+    "identity": {
+        "internalName": "CsProjFormatter"
+    },
+    "overview": "MARKETPLACE.md",
+    "priceCategory": "free",
+    "publisher": "stefan-egli",
+    "private": false,
+    "qna": true,
+    "repo": "https://github.com/stefanegli/CsProjFormatter"
+}

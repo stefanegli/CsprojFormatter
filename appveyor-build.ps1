@@ -35,13 +35,13 @@ function Install-DotNetSdk {
     $env:PATH = "$InstallDir;$env:PATH"
 }
 
-function Set-VsixBuildVersion {
+function Set-VsixVersion {
     param(
         [Parameter(Mandatory = $true)]
         [string] $ManifestPath,
 
         [Parameter(Mandatory = $true)]
-        [int] $BuildNumber,
+        [Version] $Version,
 
         [switch] $UpdateAppVeyor
     )
@@ -57,23 +57,34 @@ function Set-VsixBuildVersion {
         throw "The VSIX identity was not found in '$ManifestPath'."
     }
 
-    $baseVersion = [Version]$identity.GetAttribute('Version')
-    $version = [Version]::new($baseVersion.Major, $baseVersion.Minor, $BuildNumber)
-    $identity.SetAttribute('Version', $version.ToString())
+    $identity.SetAttribute('Version', $Version.ToString())
     $document.Save($ManifestPath)
 
-    Write-Host "VSIX version: $version"
+    Write-Host "VSIX version: $Version"
 
     if ($UpdateAppVeyor) {
         if (-not (Get-Command 'appveyor' -ErrorAction SilentlyContinue)) {
             throw 'The AppVeyor build worker command was not found.'
         }
 
-        Invoke-NativeCommand 'appveyor' @('UpdateBuild', '-Version', $version.ToString())
-        $env:APPVEYOR_BUILD_VERSION = $version.ToString()
+        Invoke-NativeCommand 'appveyor' @('UpdateBuild', '-Version', $Version.ToString())
+        $env:APPVEYOR_BUILD_VERSION = $Version.ToString()
     }
 
-    return $version
+    return $Version
+}
+
+function ConvertFrom-VsixVersionTag {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $TagName
+    )
+
+    if ($TagName -notmatch '^v(?<Version>\d+\.\d+\.\d+(?:\.\d+)?)$') {
+        throw "Tag '$TagName' is not a valid VSIX release tag. Use a numeric tag such as 'v0.1.121'."
+    }
+
+    return [Version]$Matches.Version
 }
 
 function Get-VsixVersion {
@@ -254,6 +265,78 @@ function Publish-VsixToGallery {
     Write-Host "Extension page: https://www.vsixgallery.com/extension/$extensionId"
 }
 
+function Get-VsixPublisherPath {
+    $vswherePath = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+    if (-not (Test-Path -LiteralPath $vswherePath -PathType Leaf)) {
+        throw "Visual Studio Locator was not found at '$vswherePath'."
+    }
+
+    $publisherPaths = @(& $vswherePath `
+        '-latest' `
+        '-products' '*' `
+        '-find' 'VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe')
+    if ($LASTEXITCODE -ne 0) {
+        throw "Visual Studio Locator exited with code $LASTEXITCODE while locating VsixPublisher.exe."
+    }
+
+    $publisherPath = $publisherPaths |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        Select-Object -First 1
+    if (-not $publisherPath -or -not (Test-Path -LiteralPath $publisherPath -PathType Leaf)) {
+        throw 'VsixPublisher.exe was not found. Install the Visual Studio SDK on the build worker.'
+    }
+
+    return (Resolve-Path -LiteralPath $publisherPath).Path
+}
+
+function Publish-VsixToMarketplace {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Path,
+
+        [Parameter(Mandatory = $true)]
+        [string] $PublishManifestPath
+    )
+
+    if ($env:APPVEYOR -ne 'True') {
+        Write-Host 'Not running in AppVeyor; skipping Visual Studio Marketplace publication.'
+        return
+    }
+
+    if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
+        Write-Host 'Pull request build; skipping Visual Studio Marketplace publication.'
+        return
+    }
+
+    if (-not [string]::Equals($env:APPVEYOR_REPO_TAG, 'true', [StringComparison]::OrdinalIgnoreCase)) {
+        Write-Host 'Not a tagged build; skipping Visual Studio Marketplace publication.'
+        return
+    }
+
+    if ([string]::IsNullOrWhiteSpace($env:VS_MARKETPLACE_PAT)) {
+        throw "Set 'VS_MARKETPLACE_PAT' as a secure AppVeyor environment variable before publishing a tagged build."
+    }
+
+    $vsixPath = (Resolve-Path -LiteralPath $Path).Path
+    $manifestPath = (Resolve-Path -LiteralPath $PublishManifestPath).Path
+    $publisherPath = Get-VsixPublisherPath
+
+    if (-not $PSCmdlet.ShouldProcess(
+            'Visual Studio Marketplace',
+            "Publish '$vsixPath' using '$manifestPath'")) {
+        return
+    }
+
+    Write-Host "Publishing '$vsixPath' to the Visual Studio Marketplace..."
+    Invoke-NativeCommand $publisherPath @(
+        'publish',
+        '-payload', $vsixPath,
+        '-publishManifest', $manifestPath,
+        '-personalAccessToken', $env:VS_MARKETPLACE_PAT
+    )
+}
+
 function Invoke-Build {
     $repoRoot = $PSScriptRoot
     Set-Location $repoRoot
@@ -263,10 +346,25 @@ function Invoke-Build {
 
     $manifestPath = Join-Path $repoRoot 'CsProjFormatter\source.extension.vsixmanifest'
     $buildVersion = Get-VsixVersion -ManifestPath $manifestPath
-    if ($env:APPVEYOR_BUILD_NUMBER) {
-        $buildVersion = Set-VsixBuildVersion `
+    if ([string]::Equals($env:APPVEYOR_REPO_TAG, 'true', [StringComparison]::OrdinalIgnoreCase)) {
+        if ([string]::IsNullOrWhiteSpace($env:APPVEYOR_REPO_TAG_NAME)) {
+            throw "AppVeyor marked this as a tagged build but did not provide 'APPVEYOR_REPO_TAG_NAME'."
+        }
+
+        $tagVersion = ConvertFrom-VsixVersionTag -TagName $env:APPVEYOR_REPO_TAG_NAME
+        $buildVersion = Set-VsixVersion `
             -ManifestPath $manifestPath `
-            -BuildNumber ([int]$env:APPVEYOR_BUILD_NUMBER) `
+            -Version $tagVersion `
+            -UpdateAppVeyor
+    } elseif ($env:APPVEYOR_BUILD_NUMBER) {
+        $baseVersion = Get-VsixVersion -ManifestPath $manifestPath
+        $appVeyorVersion = [Version]::new(
+            $baseVersion.Major,
+            $baseVersion.Minor,
+            [int]$env:APPVEYOR_BUILD_NUMBER)
+        $buildVersion = Set-VsixVersion `
+            -ManifestPath $manifestPath `
+            -Version $appVeyorVersion `
             -UpdateAppVeyor
     }
 
@@ -328,6 +426,9 @@ function Invoke-Build {
     Publish-AppVeyorArtifact -Path $skillArtifactPath -DeploymentName 'CodexSkill'
     Publish-AppVeyorArtifact -Path $vsixArtifactPath -DeploymentName 'VsixExtension'
     Publish-VsixToGallery $vsixArtifactPath
+    Publish-VsixToMarketplace `
+        -Path $vsixArtifactPath `
+        -PublishManifestPath (Join-Path $repoRoot 'vs-publish.json')
 }
 
 if ($MyInvocation.InvocationName -ne '.') {

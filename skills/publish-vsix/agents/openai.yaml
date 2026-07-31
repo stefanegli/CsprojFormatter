@@ -1,0 +1,4 @@
+interface:
+  display_name: "Publish CsProjFormatter VSIX"
+  short_description: "Tag the latest successful AppVeyor VSIX build"
+  default_prompt: "Use $publish-vsix to tag and publish the latest successful AppVeyor build to GitHub."
