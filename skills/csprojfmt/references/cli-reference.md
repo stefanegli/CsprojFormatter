@@ -1,5 +1,15 @@
 # `csprojfmt` CLI reference
 
+## Contents
+
+- [Command](#command)
+- [Tool installation](#tool-installation)
+- [Options](#options)
+- [Safe command patterns](#safe-command-patterns)
+- [Lint diagnostics](#lint-diagnostics)
+- [Statuses and exit codes](#statuses)
+- [CI](#ci)
+
 ## Command
 
 ```text
@@ -84,48 +94,6 @@ Target a dash-prefixed file:
 ```powershell
 csprojfmt -- --input.csproj
 ```
-
-## EditorConfig policy
-
-Formatting uses the applicable EditorConfig settings. A typical policy is:
-
-```ini
-[*.csproj]
-csproj_formatter_sort_entries=true
-csproj_formatter_empty_lines_between_groups=1
-indent_style=space
-tab_width=4
-end_of_line=crlf
-```
-
-`csproj_formatter_sort_entries` enables property sorting, item sorting, and item attribute/metadata canonicalization when set to `true`. `csproj_formatter_empty_lines_between_groups` accepts a non-negative integer; `0` disables extra blank lines. Standard `indent_style`, `tab_width`, and `end_of_line` settings control XML layout.
-
-### Item-type policy
-
-`csproj_formatter_sort_item_types` is case-insensitive and replaces the built-in list; it never extends it implicitly.
-
-| Configuration | Effect |
-| --- | --- |
-| Setting omitted | Use the built-in item-type list below. |
-| Non-empty name list | Only the listed types are eligible for item sorting and attribute/metadata canonicalization. |
-| `*` | Make every item type eligible. |
-| Item type not listed | Preserve that type's item, attribute, and child-metadata order. XML layout and linting still apply. |
-
-Separate names with commas or semicolons. Do not use an empty value to disable item sorting; omit the setting to use defaults, or set `csproj_formatter_sort_entries=false` to disable all entry sorting and item canonicalization.
-
-The built-in list is:
-
-```text
-AdditionalFiles, Analyzer, ApplicationDefinition, AssemblyAttribute, AssemblyMetadata, Compile, CompilerVisibleItemMetadata, CompilerVisibleProperty, COMFileReference, COMReference, Content, EditorConfigFiles, EmbeddedResource, Folder, FrameworkReference, GlobalAnalyzerConfigFiles, InternalsVisibleTo, NativeReference, None, PackageDownload, PackageReference, Page, ProjectReference, PrunePackageReference, Reference, Resource, RuntimeHostConfigurationOption, SplashScreen, TrimmerRootAssembly, Using
-```
-
-To retain the defaults and add `Protobuf`, copy that list into `csproj_formatter_sort_item_types` and append `Protobuf`. Before changing this setting, inspect the project for existing item types and inspect the current EditorConfig value. Prefer an explicit list; use `*` only when the user intends custom and future item types to be eligible too.
-
-Eligibility does not guarantee reordering. Sorting remains conservative: a group must be homogeneous, include-only, and have unique identities. Mixed groups and groups containing `Update`, `Remove`, item expressions, or duplicate identities retain item order. Listed items can still have their attributes and metadata canonicalized in those groups when evaluation-safe.
-
-Formatting is active only when a supported formatter or layout setting applies to the target file. Preserve the repository's intended ordering, indentation, line-ending, and spacing policy instead of inserting the full example blindly.
-
-Only SDK-style projects are formatted. Non-SDK-style `.csproj` files are reported as skipped.
 
 ## Lint diagnostics
 
