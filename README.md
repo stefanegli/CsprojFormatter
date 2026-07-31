@@ -48,11 +48,6 @@ csproj_formatter_sort_item_types=PackageReference, Protobuf
 
 All other item types retain their original item, attribute, and child-metadata order. XML indentation and spacing still apply, and `--lint` still inspects them. Omit `csproj_formatter_sort_item_types` to use the built-in list. To retain every built-in type while adding a custom type, copy the current `defaultValue` from [the EditorConfig schema](CsProjFormatter/CsProjFormatter.editorconfig-schema.json) and append the custom name. Use `*` only when every item type should be eligible; the formatter's homogeneous-group and evaluation-safety checks still apply.
 
-A few things can be configured and probably you want to have this done as follows:
-
-![Settings](CsProjFormatter/_doc/Settings.png)
-
-> Use the experimental setting with caution since it may have undesired side effects.
 
 # Agent Skill / CLI
 
