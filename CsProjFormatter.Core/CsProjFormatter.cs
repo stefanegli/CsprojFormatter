@@ -28,6 +28,9 @@ namespace CsProjFormatter
         private ILog Log { get; }
         private ISettings Settings { get; }
 
+        public IReadOnlyList<FormatterDiagnostic> Diagnostics { get; private set; } =
+            Array.Empty<FormatterDiagnostic>();
+
         public bool Run(String projectPath)
         {
             return this.Run(projectPath, true);
@@ -41,13 +44,16 @@ namespace CsProjFormatter
         public FormatterRunResult RunWithResult(String projectPath, bool writeChanges)
         {
             var originalText = File.ReadAllText(projectPath);
-            var document = XDocument.Load(projectPath);
+            var document = XDocument.Load(projectPath, LoadOptions.SetLineInfo);
             if (!IsSdkStyleProjectDocument(document))
             {
+                this.Diagnostics = Array.Empty<FormatterDiagnostic>();
                 var skipReason = "Not an SDK-style project file";
                 this.Log.WriteLine($"Update was not required: {skipReason}.");
                 return FormatterRunResult.SkippedNonSdkStyle;
             }
+
+            this.Diagnostics = ProjectLinter.Analyze(document, projectPath);
 
             if (this.Settings.SortEntries)
             {
@@ -430,22 +436,6 @@ namespace CsProjFormatter
                 return;
             }
 
-            var knownElements = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "PropertyGroup",
-                "ItemGroup",
-                "ItemDefinitionGroup",
-                "Import",
-                "ImportGroup",
-                "Target",
-                "UsingTask",
-                "Choose",
-                "When",
-                "Otherwise",
-                "ProjectExtensions",
-                "Sdk",
-            };
-
             var keptNodes = new List<XNode>();
             var unexpectedElements = new List<XElement>();
 
@@ -453,7 +443,7 @@ namespace CsProjFormatter
             {
                 if (node is XElement element)
                 {
-                    if (knownElements.Contains(element.Name.LocalName))
+                    if (ProjectStructure.KnownTopLevelElements.Contains(element.Name.LocalName))
                     {
                         keptNodes.Add(element);
                     }

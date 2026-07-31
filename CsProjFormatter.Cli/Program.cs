@@ -11,6 +11,17 @@ namespace CsProjFormatter.Cli
     internal static class Program
     {
         private const string ToolName = "csprojfmt";
+        private static readonly HashSet<string> IgnoredRecursiveDirectories =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".git",
+                ".vs",
+                "artifacts",
+                "bin",
+                "node_modules",
+                "obj",
+            };
+
         private static readonly int StatusColumnWidth =
             new[] { "updated", "unchanged", "skipped", "would-update", "failed" }
                 .Max(x => x.Length) + 2; // include '[' and ']'
@@ -21,6 +32,7 @@ namespace CsProjFormatter.Cli
             var verbose = false;
             var dryRun = false;
             var check = false;
+            var lint = false;
             var stopOptions = false;
             var paths = new List<string>();
 
@@ -69,6 +81,14 @@ namespace CsProjFormatter.Cli
                     continue;
                 }
 
+                if (!stopOptions && string.Equals(arg, "--lint", StringComparison.Ordinal))
+                {
+                    lint = true;
+                    check = true;
+                    dryRun = true;
+                    continue;
+                }
+
                 if (!stopOptions && arg.StartsWith("-", StringComparison.Ordinal))
                 {
                     Console.Error.WriteLine($"Unknown option: {arg}");
@@ -104,13 +124,14 @@ namespace CsProjFormatter.Cli
             var unchanged = 0;
             var skipped = 0;
             var failed = 0;
+            var diagnosticCount = 0;
 
             foreach (var file in files)
             {
                 try
                 {
                     var formatter = new ConfigurableCsProjFormatter(log);
-                    formatter.Run(file, !dryRun);
+                    formatter.Run(file, !dryRun, lint);
 
                     if (!formatter.IsActive || formatter.IsSkipped)
                     {
@@ -130,6 +151,15 @@ namespace CsProjFormatter.Cli
                         unchanged++;
                         WriteStatus("unchanged", file, workingDirectory);
                     }
+
+                    if (lint)
+                    {
+                        foreach (var diagnostic in formatter.Diagnostics)
+                        {
+                            diagnosticCount++;
+                            WriteDiagnostic(diagnostic, file, workingDirectory);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -147,7 +177,8 @@ namespace CsProjFormatter.Cli
             {
                 var changeLabel = dryRun ? "Would update" : "Updated";
                 Console.WriteLine(
-                    $"Processed {files.Count} file(s). {changeLabel} {changed}, unchanged {unchanged}, skipped {skipped}, failed {failed}.");
+                    $"Processed {files.Count} file(s). {changeLabel} {changed}, unchanged {unchanged}, skipped {skipped}, failed {failed}"
+                    + (lint ? $", diagnostics {diagnosticCount}." : "."));
             }
 
             if (failed > 0)
@@ -155,7 +186,7 @@ namespace CsProjFormatter.Cli
                 return 2;
             }
 
-            if (check && changed > 0)
+            if (check && (changed > 0 || (lint && diagnosticCount > 0)))
             {
                 return 1;
             }
@@ -191,6 +222,7 @@ namespace CsProjFormatter.Cli
             writer.WriteLine("  -v, --verbose     Show per-file status and errors.");
             writer.WriteLine("  -n, --dry-run     Show what would change without writing files.");
             writer.WriteLine("      --check       Exit with code 1 if any file would change (implies --dry-run).");
+            writer.WriteLine("      --lint        Report structural diagnostics and formatting changes; exit 1 if found.");
             writer.WriteLine("  -h, --help        Show this help.");
             writer.WriteLine("  -V, --version     Show version info.");
             writer.WriteLine();
@@ -231,7 +263,11 @@ namespace CsProjFormatter.Cli
                 {
                     foreach (var file in Directory.EnumerateFiles(fullPath, "*.csproj", searchOption))
                     {
-                        results.Add(Path.GetFullPath(file));
+                        var fullFilePath = Path.GetFullPath(file);
+                        if (!recursive || !IsInIgnoredRecursiveDirectory(fullPath, fullFilePath))
+                        {
+                            results.Add(fullFilePath);
+                        }
                     }
 
                     continue;
@@ -241,6 +277,26 @@ namespace CsProjFormatter.Cli
             }
 
             return results.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        private static bool IsInIgnoredRecursiveDirectory(string rootPath, string filePath)
+        {
+            var relativePath = GetRelativePath(rootPath, filePath);
+            var segments = relativePath.Split(
+                new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
+                StringSplitOptions.RemoveEmptyEntries);
+            return segments
+                .Take(Math.Max(0, segments.Length - 1))
+                .Any(IgnoredRecursiveDirectories.Contains);
+        }
+
+        private static string GetRelativePath(string rootPath, string filePath)
+        {
+            var basePath = rootPath.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal)
+                ? rootPath
+                : rootPath + Path.DirectorySeparatorChar;
+            return Uri.UnescapeDataString(new Uri(basePath).MakeRelativeUri(new Uri(filePath)).ToString())
+                .Replace('/', Path.DirectorySeparatorChar);
         }
 
         private static bool IsCsproj(string path)
@@ -253,6 +309,18 @@ namespace CsProjFormatter.Cli
             var statusLabel = $"[{status}]".PadRight(StatusColumnWidth);
             var displayPath = GetRelativePathFromWorkingDirectory(file, workingDirectory);
             Console.WriteLine($"{statusLabel} {displayPath}");
+        }
+
+        private static void WriteDiagnostic(
+            FormatterDiagnostic diagnostic,
+            string file,
+            string workingDirectory)
+        {
+            var displayPath = GetRelativePathFromWorkingDirectory(file, workingDirectory);
+            var location = diagnostic.LineNumber.HasValue
+                ? $"{displayPath}({diagnostic.LineNumber.Value})"
+                : displayPath;
+            Console.WriteLine($"{location}: warning {diagnostic.Code}: {diagnostic.Message}");
         }
 
         private static string GetRelativePathFromWorkingDirectory(string file, string workingDirectory)

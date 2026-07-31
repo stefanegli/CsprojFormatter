@@ -66,7 +66,86 @@ namespace CsProjFormatter.CliTests
             }
         }
 
-        private static async Task<CliRunResult> RunCliAsync(string workingDirectory, string targetFile)
+        [Fact]
+        public async Task Lint_reports_diagnostics_without_editorconfig()
+        {
+            var tempRoot = Path.Combine(
+                Path.GetTempPath(),
+                "CsProjFormatter.CliTests",
+                Guid.NewGuid().ToString("N", System.Globalization.CultureInfo.InvariantCulture));
+            Directory.CreateDirectory(tempRoot);
+
+            try
+            {
+                var projectFile = Path.Combine(tempRoot, "LintProject.csproj");
+                File.WriteAllText(
+                    projectFile,
+                    string.Join(
+                        "\r\n",
+                        "<Project Sdk=\"Microsoft.NET.Sdk\">",
+                        "  <PropertyGroup>",
+                        "    <TargetFramework>net10.0</TargetFramework>",
+                        "    <TargetFrameworks>net10.0;net9.0</TargetFrameworks>",
+                        "  </PropertyGroup>",
+                        "",
+                        "  <ItemGroup />",
+                        "</Project>"));
+
+                var result = await RunCliAsync(tempRoot, projectFile, "--lint");
+
+                Check.That(result.ExitCode).IsEqualTo(1);
+                Check.That(result.StandardOutput).Contains("warning CSPROJ001");
+                Check.That(result.StandardOutput).Contains("warning CSPROJ004");
+            }
+            finally
+            {
+                if (Directory.Exists(tempRoot))
+                {
+                    Directory.Delete(tempRoot, recursive: true);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Recursive_processing_skips_generated_directories()
+        {
+            var tempRoot = Path.Combine(
+                Path.GetTempPath(),
+                "CsProjFormatter.CliTests",
+                Guid.NewGuid().ToString("N", System.Globalization.CultureInfo.InvariantCulture));
+            Directory.CreateDirectory(Path.Combine(tempRoot, "bin", "Debug"));
+
+            try
+            {
+                var project = string.Join(
+                    "\r\n",
+                    "<Project Sdk=\"Microsoft.NET.Sdk\">",
+                    "  <PropertyGroup>",
+                    "    <TargetFramework>net10.0</TargetFramework>",
+                    "  </PropertyGroup>",
+                    "</Project>");
+                File.WriteAllText(Path.Combine(tempRoot, "Real.csproj"), project);
+                File.WriteAllText(Path.Combine(tempRoot, "bin", "Debug", "Generated.csproj"), project);
+
+                var result = await RunCliAsync(tempRoot, tempRoot, "--lint", "--recursive");
+
+                Check.That(result.ExitCode).IsEqualTo(0);
+                Check.That(result.StandardOutput).Contains("Real.csproj");
+                Check.That(result.StandardOutput).Not.Contains("Generated.csproj");
+            }
+            finally
+            {
+                if (Directory.Exists(tempRoot))
+                {
+                    Directory.Delete(tempRoot, recursive: true);
+                }
+            }
+        }
+
+        private static async Task<CliRunResult> RunCliAsync(
+            string workingDirectory,
+            string targetFile,
+            params string[] options)
         {
             var startInfo = new ProcessStartInfo("dotnet")
             {
@@ -77,6 +156,11 @@ namespace CsProjFormatter.CliTests
             };
 
             startInfo.ArgumentList.Add(GetCliDllPath());
+            foreach (var option in options)
+            {
+                startInfo.ArgumentList.Add(option);
+            }
+
             startInfo.ArgumentList.Add("-v");
             startInfo.ArgumentList.Add(targetFile);
 

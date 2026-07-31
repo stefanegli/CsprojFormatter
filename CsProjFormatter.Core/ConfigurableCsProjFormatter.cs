@@ -2,6 +2,9 @@
 
 namespace CsProjFormatter
 {
+    using System;
+    using System.Collections.Generic;
+
     public class ConfigurableCsProjFormatter
     {
         public ConfigurableCsProjFormatter(ILog log)
@@ -15,6 +18,9 @@ namespace CsProjFormatter
 
         public bool IsSkipped { get; private set; }
 
+        public IReadOnlyList<FormatterDiagnostic> Diagnostics { get; private set; } =
+            Array.Empty<FormatterDiagnostic>();
+
         private ILog Log { get; }
 
         /// <summary>
@@ -27,19 +33,27 @@ namespace CsProjFormatter
 
         public void Run(string csprojPath, bool writeChanges)
         {
+            this.Run(csprojPath, writeChanges, false);
+        }
+
+        public void Run(string csprojPath, bool writeChanges, bool forceActive)
+        {
             this.IsFileChanged = false;
             this.IsSkipped = false;
+            this.Diagnostics = Array.Empty<FormatterDiagnostic>();
             var settings = new CsProjEditorConfigSettings(csprojPath, this.Log);
-            this.IsActive = settings.IsActive;
-            if (!settings.IsActive)
+            this.IsActive = settings.IsActive || forceActive;
+            if (!this.IsActive)
             {
                 return;
             }
 
-            var formatter = new CsProjFormatter(settings, this.Log);
+            ISettings effectiveSettings = settings.IsActive ? settings : new Settings();
+            var formatter = new CsProjFormatter(effectiveSettings, this.Log);
             var result = formatter.RunWithResult(csprojPath, writeChanges);
             this.IsFileChanged = result == FormatterRunResult.Updated;
             this.IsSkipped = result == FormatterRunResult.SkippedNonSdkStyle;
+            this.Diagnostics = formatter.Diagnostics;
         }
     }
 }
