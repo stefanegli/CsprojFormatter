@@ -22,8 +22,6 @@ Formatting rules are configured in the [EditorConfig](https://editorconfig.org/)
 [*.csproj]
 csproj_formatter_sort_entries=true
 csproj_formatter_empty_lines_between_groups=1
-# Optional: replace the built-in SDK item-type list.
-# csproj_formatter_sort_item_types=PackageReference, ProjectReference, FrameworkReference, Protobuf
 indent_style=space
 tab_width=4
 end_of_line=crlf
@@ -36,9 +34,19 @@ Sorting behavior:
 - PropertyGroup entries are sorted alphabetically when doing so is evaluation-safe. The relative order of properties that assign or reference the same `$(Property)` chain is preserved.
 - ItemGroup entries are sorted only when the group contains one configured item type, every item is include-only, and identities are unique. Groups using `Update`, `Remove`, item expressions, or duplicate identities retain their original order.
 - The built-in item types cover common .NET, desktop, compiler, packaging, and SDK extensibility items, including `Compile`, `Content`, `EmbeddedResource`, `None`, `PackageReference`, `PackageDownload`, `ProjectReference`, `FrameworkReference`, `Reference`, `Analyzer`, `AdditionalFiles`, `EditorConfigFiles`, `Page`, `ApplicationDefinition`, `Resource`, `Using`, `AssemblyAttribute`, and `InternalsVisibleTo`.
-- Override the built-in list with `csproj_formatter_sort_item_types`. Separate names with commas or semicolons, or use `*` to allow any homogeneous item type. For example, add `Protobuf` for a gRPC project.
+- Override the built-in list with `csproj_formatter_sort_item_types`. The value is a case-insensitive replacement list, not an addition to the defaults. Separate names with commas or semicolons, or use `*` to allow any homogeneous item type.
 - Item attributes and child metadata use a stable canonical order: identity operation first, commonly used metadata next, unknown names alphabetically, and `Condition` last. Metadata references such as `%(Filename)` retain evaluation-safe ordering.
 - Top-level groups are separated by one empty line by default. Configure with `csproj_formatter_empty_lines_between_groups` (`0` disables extra blank lines).
+
+For example, this policy makes only `PackageReference` and `Protobuf` items eligible for item sorting and canonicalization:
+
+```ini
+[*.csproj]
+csproj_formatter_sort_entries=true
+csproj_formatter_sort_item_types=PackageReference, Protobuf
+```
+
+All other item types retain their original item, attribute, and child-metadata order. XML indentation and spacing still apply, and `--lint` still inspects them. Omit `csproj_formatter_sort_item_types` to use the built-in list. To retain every built-in type while adding a custom type, copy the current `defaultValue` from [the EditorConfig schema](CsProjFormatter/CsProjFormatter.editorconfig-schema.json) and append the custom name. Use `*` only when every item type should be eligible; the formatter's homogeneous-group and evaluation-safety checks still apply.
 
 A few things can be configured and probably you want to have this done as follows:
 

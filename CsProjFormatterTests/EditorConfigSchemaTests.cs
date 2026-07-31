@@ -32,6 +32,10 @@ namespace CsProjFormatterTests
             var emptyLinesBetweenGroups = properties["csproj_formatter_empty_lines_between_groups"];
             Check.That(emptyLinesBetweenGroups.GetProperty("defaultValue").EnumerateArray().Single().GetInt32()).IsEqualTo(1);
             Check.That(emptyLinesBetweenGroups.GetProperty("description").GetString()).Contains("non-negative integer");
+
+            var sortItemTypes = properties["csproj_formatter_sort_item_types"];
+            Check.That(sortItemTypes.GetProperty("description").GetString()).Contains("replacement");
+            Check.That(sortItemTypes.GetProperty("description").GetString()).Contains("unlisted types retain");
         }
 
         [Fact]
