@@ -22,6 +22,7 @@ namespace CsProjFormatterTests
 
             Check.That(properties.Keys).Contains("csproj_formatter_sort_entries");
             Check.That(properties.Keys).Contains("csproj_formatter_empty_lines_between_groups");
+            Check.That(properties.Keys).Contains("csproj_formatter_sort_item_types");
 
             var sortEntries = properties["csproj_formatter_sort_entries"];
             Check.That(sortEntries.GetProperty("values").EnumerateArray().Select(value => value.GetBoolean())).Contains(true);

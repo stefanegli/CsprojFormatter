@@ -54,7 +54,7 @@ namespace CsProjFormatter
                 if (IsProjectDocument(document))
                 {
                     SortPropertyGroups(document);
-                    SortItemGroups(document);
+                    SortItemGroups(document, ItemSortingSettings.Resolve(this.Settings));
                     MoveUnexpectedProjectElementsToEnd(document);
                 }
             }
@@ -475,7 +475,7 @@ namespace CsProjFormatter
             document.Root.ReplaceNodes(keptNodes);
         }
 
-        private static void SortItemGroups(XDocument document)
+        private static void SortItemGroups(XDocument document, HashSet<string> sortableItemTypes)
         {
             foreach (var itemGroup in document.Root.Elements().Where(e => e.Name.LocalName == "ItemGroup"))
             {
@@ -489,6 +489,11 @@ namespace CsProjFormatter
                 }
 
                 var elementName = elementNames[0];
+                if (!sortableItemTypes.Contains("*") && !sortableItemTypes.Contains(elementName))
+                {
+                    continue;
+                }
+
                 if (!CanSafelySortItemGroup(itemGroup, elementName))
                 {
                     continue;
@@ -501,7 +506,7 @@ namespace CsProjFormatter
                         break;
                     case "ProjectReference":
                     case "Reference":
-                    case "None":
+                    default:
                         SortItemGroupElements(itemGroup, elementName);
                         break;
                 }

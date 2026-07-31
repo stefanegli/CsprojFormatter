@@ -1,10 +1,11 @@
 // Copyright (c) 2026 by Stefan Egli.All rights reserved
 
 using System;
+using System.Linq;
 
 namespace CsProjFormatter
 {
-    internal class CsProjEditorConfigSettings : ISettings
+    internal class CsProjEditorConfigSettings : ISettings, IItemSortingSettings
     {
         public CsProjEditorConfigSettings(string targetFile = "dummy.csproj", ILog log = null)
         {
@@ -57,6 +58,21 @@ namespace CsProjFormatter
                     isActive = true;
                     this.EmptyLinesBetweenGroups = parsedEmptyLinesBetweenGroups;
                 }
+
+                if (settings.TryGetValue("csproj_formatter_sort_item_types", out var sortItemTypes))
+                {
+                    isActive = true;
+                    var parsedItemTypes = sortItemTypes
+                        .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim())
+                        .Where(x => x.Length > 0)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToArray();
+                    if (parsedItemTypes.Length > 0)
+                    {
+                        this.SortItemTypes = parsedItemTypes;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -71,6 +87,8 @@ namespace CsProjFormatter
         public bool IsActive { get; }
 
         public bool SortEntries { get; }
+
+        public System.Collections.Generic.IReadOnlyCollection<string> SortItemTypes { get; private set; } = ItemSortingSettings.Defaults;
 
         public char IndentStyle { get; } = ' ';
 
