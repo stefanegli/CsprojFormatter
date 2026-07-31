@@ -53,8 +53,10 @@ namespace CsProjFormatter
             {
                 if (IsProjectDocument(document))
                 {
+                    var sortableItemTypes = ItemSortingSettings.Resolve(this.Settings);
                     SortPropertyGroups(document);
-                    SortItemGroups(document, ItemSortingSettings.Resolve(this.Settings));
+                    ItemCanonicalizer.Canonicalize(document, sortableItemTypes);
+                    SortItemGroups(document, sortableItemTypes);
                     MoveUnexpectedProjectElementsToEnd(document);
                 }
             }
