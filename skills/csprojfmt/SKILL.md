@@ -11,9 +11,9 @@ Preview before writing, preserve the applicable EditorConfig policy, and verify 
 
 1. Inspect the targets, repository status, and applicable `.editorconfig`.
 2. Use `csprojfmt` on `PATH`. If missing, explain that the .NET 10 SDK and `PetchNaka.CsProjFormatter.Cli` are required. Obtain permission before installing or updating the global tool, then verify with `csprojfmt --version`.
-3. Preview the exact scope with `--check`; add `--recursive` only when requested or clearly intended.
-4. For checks or audits, stop and report the preview. For formatting, rerun the same scope without `--check`, then verify it with `--check` and inspect the relevant diff.
-5. Treat exit `1` from `--check` as pending changes and exit `2` as an execution failure. Report updated, unchanged, skipped, and failed files.
+3. Preview the exact scope with `--check`; use `--lint` when structural diagnostics are requested. Add `--recursive` only when requested or clearly intended.
+4. For checks, lints, or audits, stop and report the preview. For formatting, rerun the same scope without `--check`, then verify it with `--check` and inspect the relevant diff.
+5. Treat exit `1` from `--check` as pending changes and from `--lint` as pending changes or diagnostics. Treat exit `2` as an execution failure. Report updated, unchanged, skipped, failed, and diagnostic results.
 
 ## Guardrails
 

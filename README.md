@@ -22,6 +22,8 @@ Formatting rules are configured in the [EditorConfig](https://editorconfig.org/)
 [*.csproj]
 csproj_formatter_sort_entries=true
 csproj_formatter_empty_lines_between_groups=1
+# Optional: replace the built-in SDK item-type list.
+# csproj_formatter_sort_item_types=PackageReference, ProjectReference, FrameworkReference, Protobuf
 indent_style=space
 tab_width=4
 end_of_line=crlf
@@ -31,9 +33,11 @@ When the [EditorConfig Language Service](https://github.com/madskristensen/Edito
 
 Sorting behavior:
 
-- PropertyGroup entries are sorted alphabetically, but dependencies like `$(Version)` are kept before the properties that reference them.
-- ItemGroup entries are sorted when all items are the same type: `PackageReference`, `ProjectReference`, `Reference`, or `None`.
-- PackageReference groups are ordered as: normal packages, `IncludeAssets`, `PrivateAssets`, and then `Condition`, with alphabetical sorting inside each group.
+- PropertyGroup entries are sorted alphabetically when doing so is evaluation-safe. The relative order of properties that assign or reference the same `$(Property)` chain is preserved.
+- ItemGroup entries are sorted only when the group contains one configured item type, every item is include-only, and identities are unique. Groups using `Update`, `Remove`, item expressions, or duplicate identities retain their original order.
+- The built-in item types cover common .NET, desktop, compiler, packaging, and SDK extensibility items, including `Compile`, `Content`, `EmbeddedResource`, `None`, `PackageReference`, `PackageDownload`, `ProjectReference`, `FrameworkReference`, `Reference`, `Analyzer`, `AdditionalFiles`, `EditorConfigFiles`, `Page`, `ApplicationDefinition`, `Resource`, `Using`, `AssemblyAttribute`, and `InternalsVisibleTo`.
+- Override the built-in list with `csproj_formatter_sort_item_types`. Separate names with commas or semicolons, or use `*` to allow any homogeneous item type. For example, add `Protobuf` for a gRPC project.
+- Item attributes and child metadata use a stable canonical order: identity operation first, commonly used metadata next, unknown names alphabetically, and `Condition` last. Metadata references such as `%(Filename)` retain evaluation-safe ordering.
 - Top-level groups are separated by one empty line by default. Configure with `csproj_formatter_empty_lines_between_groups` (`0` disables extra blank lines).
 
 A few things can be configured and probably you want to have this done as follows:
@@ -64,9 +68,11 @@ Update an existing installation with:
 dotnet tool update --global PetchNaka.CsProjFormatter.Cli
 ```
 
-Run `csprojfmt` from the directory containing the project files you want to process. The command syntax is `csprojfmt [options] [<path> ...]`. Use `--check` to detect required changes without writing, `--dry-run` to preview, `--recursive` to include subdirectories, and `--verbose` for detailed output. Formatting follows the applicable EditorConfig settings; without a path, the current directory is processed.
+Run `csprojfmt` from the directory containing the project files you want to process. The command syntax is `csprojfmt [options] [<path> ...]`. Use `--check` to detect required changes without writing, `--lint` to report structural diagnostics as well as formatting changes, `--dry-run` to preview, `--recursive` to include subdirectories, and `--verbose` for detailed output. Recursive discovery skips common generated directories such as `bin`, `obj`, `.git`, `.vs`, `artifacts`, and `node_modules`. Formatting follows the applicable EditorConfig settings; without a path, the current directory is processed.
 
-The CLI reports `updated`, `would-update`, `unchanged`, `skipped`, or `failed` for each file. A skipped file either has no applicable formatting settings or is not an SDK-style project. Exit code `1` means `--check` found pending changes; exit code `2` means a usage, path, access, or formatting failure.
+`--lint` works even when no formatter-specific EditorConfig setting is present and never writes files. It reports empty or mixed groups, duplicate items, conflicting target-framework properties, explicit items that may duplicate .NET SDK defaults, and unexpected top-level elements. Diagnostics use stable codes `CSPROJ001` through `CSPROJ006` and include source line numbers when available.
+
+The CLI reports `updated`, `would-update`, `unchanged`, `skipped`, or `failed` for each file. A skipped file either has no applicable formatting settings or is not an SDK-style project. Exit code `1` means `--check` found pending changes or `--lint` found a diagnostic; exit code `2` means a usage, path, access, or formatting failure.
 
 # Contributing
 Please use the [issue tracker](https://github.com/stefanegli/CsProjFormatter/issues) for submitting bug reports or feature requests.

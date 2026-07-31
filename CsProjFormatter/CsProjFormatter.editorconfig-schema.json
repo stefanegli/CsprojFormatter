@@ -20,7 +20,7 @@
     {
       "name": "csproj_formatter_sort_item_types",
       "description": "Comma-separated item types whose homogeneous, include-only groups are sorted. Use * to allow every item type.",
-      "defaultValue": ["AdditionalFiles, Analyzer, Compile, Content, EmbeddedResource, FrameworkReference, InternalsVisibleTo, None, PackageReference, ProjectReference, Reference, Using"],
+      "defaultValue": ["AdditionalFiles, Analyzer, ApplicationDefinition, AssemblyAttribute, AssemblyMetadata, Compile, CompilerVisibleItemMetadata, CompilerVisibleProperty, COMFileReference, COMReference, Content, EditorConfigFiles, EmbeddedResource, Folder, FrameworkReference, GlobalAnalyzerConfigFiles, InternalsVisibleTo, NativeReference, None, PackageDownload, PackageReference, Page, ProjectReference, PrunePackageReference, Reference, Resource, RuntimeHostConfigurationOption, SplashScreen, TrimmerRootAssembly, Using"],
       "severity": false,
       "documentationLink": "https://github.com/stefanegli/CsProjFormatter#editorconfig",
       "example": "csproj_formatter_sort_item_types = PackageReference, ProjectReference, FrameworkReference, Protobuf"

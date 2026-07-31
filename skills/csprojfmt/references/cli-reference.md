@@ -41,6 +41,7 @@ dotnet run --project CsProjFormatter.Cli/CsProjFormatter.Cli.csproj -- --check -
 | `-v`, `--verbose` | Show detailed per-file logging and exception details. |
 | `-n`, `--dry-run` | Preview without writing; return `0` even when changes are pending. |
 | `--check` | Preview without writing; return `1` when any active file would change. |
+| `--lint` | Report structural diagnostics and formatting changes without writing; return `1` when either is found. |
 | `-h`, `--help`, `/?` | Print help and return `0`. |
 | `-V`, `--version` | Print the version and return `0`. |
 | `--` | Stop option parsing so dash-prefixed paths can be targeted. |
@@ -57,6 +58,12 @@ Check every `.csproj` file beneath the current directory:
 
 ```powershell
 csprojfmt --check --recursive .
+```
+
+Lint a repository even when no formatter-specific EditorConfig setting is present:
+
+```powershell
+csprojfmt --lint --recursive .
 ```
 
 Preview changes without making pending changes fail the command:
@@ -93,9 +100,26 @@ end_of_line=crlf
 
 `csproj_formatter_sort_entries` sorts supported property and item groups when set to `true`. `csproj_formatter_empty_lines_between_groups` accepts a non-negative integer; `0` disables extra blank lines. Standard `indent_style`, `tab_width`, and `end_of_line` settings control XML layout.
 
+`csproj_formatter_sort_item_types` replaces the built-in set of sortable SDK item types. Separate item names with commas or semicolons; use `*` to allow every homogeneous item type. Sorting remains conservative: mixed groups and groups containing `Update`, `Remove`, item expressions, or duplicate identities retain their original order.
+
 Formatting is active only when a supported formatter or layout setting applies to the target file. Preserve the repository's intended ordering, indentation, line-ending, and spacing policy instead of inserting the full example blindly.
 
 Only SDK-style projects are formatted. Non-SDK-style `.csproj` files are reported as skipped.
+
+## Lint diagnostics
+
+`--lint` implies check and dry-run behavior, activates default formatting rules when no formatter-specific EditorConfig setting applies, and reports:
+
+| Code | Meaning |
+| --- | --- |
+| `CSPROJ001` | Empty `PropertyGroup` or `ItemGroup`. |
+| `CSPROJ002` | Mixed item types in one `ItemGroup`. |
+| `CSPROJ003` | Duplicate item operation, identity, and condition. |
+| `CSPROJ004` | `TargetFramework` and `TargetFrameworks` in the same group. |
+| `CSPROJ005` | Explicit local item may duplicate a .NET SDK default item. |
+| `CSPROJ006` | Unexpected top-level project element. |
+
+Diagnostics include the project path and source line when available. `CSPROJ005` respects the SDK default-item enable/disable properties and only reports a local include when a matching file is present.
 
 ## Statuses
 
@@ -114,18 +138,18 @@ Paths in output are relative to the current working directory when possible. Wit
 | Code | Meaning |
 | --- | --- |
 | `0` | Successful execution; with `--check`, no active file needs changes. |
-| `1` | `--check` found at least one file that would change. |
+| `1` | `--check` found a file that would change, or `--lint` found a formatting change or diagnostic. |
 | `2` | Unknown option, invalid/non-`.csproj`/missing path, access error, or formatting failure. |
 
 `No .csproj files found.` can return `0` when the searched scope is valid but empty, or `2` when path errors also occurred. Inspect standard error before treating an empty result as success.
 
 ## CI
 
-Install the tool, then use `--check --recursive` to enforce formatting without modifying the checkout:
+Install the tool, then use `--lint --recursive` to enforce formatting and structural checks without modifying the checkout:
 
 ```powershell
 dotnet tool install --global PetchNaka.CsProjFormatter.Cli
-csprojfmt --check --recursive .
+csprojfmt --lint --recursive .
 ```
 
-Pin the package with `--version <version>` when reproducible CI builds require it. Treat exit `1` as a formatting-policy violation and exit `2` as an execution/configuration failure. Preserve CLI output in the job log so pending or failed paths are visible.
+Pin the package with `--version <version>` when reproducible CI builds require it. Treat exit `1` as a formatting or lint-policy violation and exit `2` as an execution/configuration failure. Preserve CLI output in the job log so pending, diagnostic, or failed paths are visible.
