@@ -287,10 +287,31 @@ namespace CsProjFormatter
                             continue;
                         }
 
-                        if (edges[referencedIndex].Add(i))
+                        // MSBuild expands properties in document order. Preserve the
+                        // original relative order of a reference and every assignment
+                        // to the referenced property instead of "fixing" a forward
+                        // reference and thereby changing its evaluated value.
+                        var earlierIndex = Math.Min(referencedIndex, i);
+                        var laterIndex = Math.Max(referencedIndex, i);
+                        if (edges[earlierIndex].Add(laterIndex))
                         {
-                            indegree[i]++;
+                            indegree[laterIndex]++;
                         }
+                    }
+                }
+            }
+
+            // Repeated assignments are also order-sensitive because the last
+            // assignment wins.
+            foreach (var indices in nameToIndices.Values)
+            {
+                for (var i = 1; i < indices.Count; i++)
+                {
+                    var previousIndex = indices[i - 1];
+                    var currentIndex = indices[i];
+                    if (edges[previousIndex].Add(currentIndex))
+                    {
+                        indegree[currentIndex]++;
                     }
                 }
             }
@@ -413,6 +434,7 @@ namespace CsProjFormatter
                 "ItemGroup",
                 "ItemDefinitionGroup",
                 "Import",
+                "ImportGroup",
                 "Target",
                 "UsingTask",
                 "Choose",
@@ -467,6 +489,11 @@ namespace CsProjFormatter
                 }
 
                 var elementName = elementNames[0];
+                if (!CanSafelySortItemGroup(itemGroup, elementName))
+                {
+                    continue;
+                }
+
                 switch (elementName)
                 {
                     case "PackageReference":
@@ -479,6 +506,26 @@ namespace CsProjFormatter
                         break;
                 }
             }
+        }
+
+        private static bool CanSafelySortItemGroup(XElement itemGroup, string elementName)
+        {
+            var identities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var element in itemGroup.Elements().Where(e => e.Name.LocalName == elementName))
+            {
+                var include = (string)element.Attribute("Include");
+                if (string.IsNullOrWhiteSpace(include)
+                    || element.Attribute("Update") != null
+                    || element.Attribute("Remove") != null
+                    || include.IndexOf("@(", StringComparison.Ordinal) >= 0
+                    || include.IndexOf("%(", StringComparison.Ordinal) >= 0
+                    || !identities.Add(include))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static void SortPackageReferencesInGroup(XElement itemGroup)
