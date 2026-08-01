@@ -82,3 +82,11 @@ Please use the [issue tracker](https://github.com/stefanegli/CsProjFormatter/iss
 
 # License
 [MIT License](LICENSE)
+
+## Third Party Licenses
+
+| Library | License |
+| ------- | ------- |
+| [EditorConfig .NET Core](https://github.com/editorconfig/editorconfig-core-net) | [MIT License](https://github.com/editorconfig/editorconfig-core-net/blob/master/LICENSE) |
+| [xUnit](https://github.com/xunit/xunit) | [Apache License 2.0 / MIT License](https://github.com/xunit/xunit/blob/main/LICENSE) |
+| [NFluent](https://github.com/tpierrain/NFluent) | [Apache License 2.0](https://github.com/tpierrain/NFluent/blob/master/LICENSE.txt) |
