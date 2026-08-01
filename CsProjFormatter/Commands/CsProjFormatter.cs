@@ -13,7 +13,7 @@ namespace CsProjFormatter.Commands
     /// </summary>
     internal sealed partial class PackageGuids
     {
-        public const string guidCsProjFormatterPackageString = "40d1f52e-e828-4cca-8279-df4ccd348f09";
+        public const string guidCsProjFormatterPackageString = "a02f620d-a31a-46a3-b2f5-7a0e214830f8";
         public static Guid guidCsProjFormatterPackage = new Guid(guidCsProjFormatterPackageString);
 
         public const string guidCsProjFormatterCmdSetString = "96f15caa-cbdc-4ddf-8f33-d44c16cb50dc";

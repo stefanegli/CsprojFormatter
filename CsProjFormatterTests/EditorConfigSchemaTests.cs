@@ -30,12 +30,36 @@ namespace CsProjFormatterTests
             Check.That(sortEntries.GetProperty("defaultValue").EnumerateArray().Single().GetBoolean()).IsTrue();
 
             var emptyLinesBetweenGroups = properties["csproj_formatter_empty_lines_between_groups"];
+            Check.That(emptyLinesBetweenGroups.GetProperty("values").EnumerateArray().Select(value => value.GetInt32())).Contains(0);
             Check.That(emptyLinesBetweenGroups.GetProperty("defaultValue").EnumerateArray().Single().GetInt32()).IsEqualTo(1);
             Check.That(emptyLinesBetweenGroups.GetProperty("description").GetString()).Contains("non-negative integer");
 
             var sortItemTypes = properties["csproj_formatter_sort_item_types"];
+            var sortItemTypeValues = sortItemTypes.GetProperty("values").EnumerateArray().Select(value => value.GetString());
+            Check.That(sortItemTypeValues).Contains("*");
+            Check.That(sortItemTypeValues).Contains("<item_type>");
+            Check.That(sortItemTypeValues).Contains("PackageReference");
+            Check.That(sortItemTypes.GetProperty("multiple").GetBoolean()).IsTrue();
             Check.That(sortItemTypes.GetProperty("description").GetString()).Contains("replacement");
             Check.That(sortItemTypes.GetProperty("description").GetString()).Contains("unlisted types retain");
+        }
+
+        [Fact]
+        public void Visual_studio_integration_uses_unique_package_and_output_pane_ids()
+        {
+            const string resxFormatterPackageId = "40d1f52e-e828-4cca-8279-df4ccd348f09";
+            const string resxFormatterOutputPaneId = "4DDD4974-C22A-4D9A-B148-3594680AAC76";
+            const string packageId = "a02f620d-a31a-46a3-b2f5-7a0e214830f8";
+
+            var generatedPackageIds = File.ReadAllText(GetProjectFilePath(Path.Combine("Commands", "CsProjFormatter.cs")));
+            var commandTable = File.ReadAllText(GetProjectFilePath(Path.Combine("Commands", "CsProjFormatter.vsct")));
+            var log = File.ReadAllText(GetProjectFilePath("Log.cs"));
+
+            Check.That(generatedPackageIds).Contains(packageId);
+            Check.That(commandTable).Contains(packageId);
+            Check.That(generatedPackageIds).Not.Contains(resxFormatterPackageId);
+            Check.That(commandTable).Not.Contains(resxFormatterPackageId);
+            Check.That(log).Not.Contains(resxFormatterOutputPaneId);
         }
 
         [Fact]

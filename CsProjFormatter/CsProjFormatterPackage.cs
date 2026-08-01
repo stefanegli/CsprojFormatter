@@ -2,9 +2,8 @@
 
 namespace CsProjFormatter
 {
-    using EnvDTE;
-
     using global::CsProjFormatter.Commands;
+    using global::CsProjFormatter.VisualStudio;
 
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
@@ -23,10 +22,7 @@ namespace CsProjFormatter
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class CsProjFormatterPackage : AsyncPackage
     {
-        private static EnvDTE80.DTE2 applicationObject;
-        private static DocumentEvents documentEvents;
-        private static Events events;
-        private static ILog Log { get; } = new Log();
+        private static VsDocumentEvents documentEvents;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -34,27 +30,57 @@ namespace CsProjFormatter
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // avoid garbage collection
-            applicationObject = await this.GetServiceAsync(typeof(SDTE)) as EnvDTE80.DTE2;
-            if (applicationObject is object)
+            var applicationObject = await this.GetServiceAsync(typeof(SDTE)) as EnvDTE80.DTE2;
+            if (applicationObject is null)
             {
-                await FormatAllCommand.InitializeAsync(this, applicationObject, Log);
-                events = applicationObject.Events;
-                documentEvents = events.DocumentEvents;
-                documentEvents.DocumentSaved += this.OnDocumentSaved;
+                throw new InvalidOperationException("Failed to get the Visual Studio automation service.");
             }
+
+            await FormatAllCommand.InitializeAsync(this, applicationObject, Log.Current);
+
+            // Keep the event source alive for the lifetime of the package.
+            documentEvents = new VsDocumentEvents();
+            documentEvents.Saved += this.OnDocumentSaved;
+
+            Log.Current.WriteLine("CsProjFormatter initialized. Monitoring saved .csproj files.");
         }
 
-        private void OnDocumentSaved(Document document)
+        private void OnDocumentSaved(object sender, VsDocument document)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (document.Kind.ToUpperInvariant() == "{8E7B96A8-E33D-11D0-A6D5-00C04FB67F6A}"
-                && document.FullName.ToUpperInvariant().EndsWith(".CSPROJ"))
+            if (!document.Path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
             {
-                Log.WriteLine("Save event for xml document received.");
-                var formatter = new ConfigurableCsProjFormatter(Log);
-                formatter.Run(document.FullName);
+                return;
+            }
+
+            Log.Current.WriteLine($"Save event received: {document.Path}");
+
+            try
+            {
+                var formatter = new ConfigurableCsProjFormatter(Log.Current);
+                formatter.Run(document.Path);
+
+                if (!formatter.IsActive)
+                {
+                    Log.Current.WriteLine($"Save: inactive via .editorconfig, skipped '{document.Path}'.");
+                }
+                else if (formatter.IsSkipped)
+                {
+                    Log.Current.WriteLine($"Save: skipped non-SDK-style project '{document.Path}'.");
+                }
+                else if (formatter.IsFileChanged)
+                {
+                    Log.Current.WriteLine($"Save: updated '{document.Path}'.");
+                }
+                else
+                {
+                    Log.Current.WriteLine($"Save: already formatted '{document.Path}'.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Current.WriteLine($"Save: failed '{document.Path}'. {ex}");
             }
         }
     }
