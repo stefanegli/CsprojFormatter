@@ -354,8 +354,7 @@ function Invoke-Build {
         $tagVersion = ConvertFrom-VsixVersionTag -TagName $env:APPVEYOR_REPO_TAG_NAME
         $buildVersion = Set-VsixVersion `
             -ManifestPath $manifestPath `
-            -Version $tagVersion `
-            -UpdateAppVeyor
+            -Version $tagVersion
     } elseif ($env:APPVEYOR_BUILD_NUMBER) {
         $baseVersion = Get-VsixVersion -ManifestPath $manifestPath
         $appVeyorVersion = [Version]::new(

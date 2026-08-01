@@ -19,10 +19,18 @@ function Invoke-Git {
         [string[]] $ArgumentList
     )
 
-    $output = @(& git -C $RepositoryRoot @ArgumentList 2>&1)
-    if ($LASTEXITCODE -ne 0) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $output = @(& git -C $RepositoryRoot @ArgumentList 2>&1)
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    if ($exitCode -ne 0) {
         $details = ($output | Out-String).Trim()
-        throw "git $($ArgumentList -join ' ') failed with exit code $LASTEXITCODE. $details"
+        throw "git $($ArgumentList -join ' ') failed with exit code $exitCode. $details"
     }
 
     return $output
