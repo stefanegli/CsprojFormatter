@@ -1,6 +1,6 @@
 # Road map
 
-## Unreleased
+## 0.2
 
 - Preserve MSBuild evaluation order when sorting properties and items.
 - Sort a broad, configurable set of common SDK-style item types.
